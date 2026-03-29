@@ -15,6 +15,7 @@ import modulos.osteoporose as osteoporose
 import modulos.start_back as start_back
 import modulos.spine_sage as spine_sage
 import modulos.rotator_cuff as rotator_cuff
+import modulos.osteosarcoma as osteosarcoma
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -32,7 +33,11 @@ if 'paciente_ativo' not in st.session_state:
 if 'modulo_selecionado' not in st.session_state:
     st.session_state.modulo_selecionado = None
 
-lista_modulos = ['arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 'spinesage_res', 'rotator_cuff_res']
+# Lista atualizada com o novo módulo de Osteossarcoma
+lista_modulos = [
+    'arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 
+    'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res'
+]
 for mod in lista_modulos:
     if mod not in st.session_state:
         st.session_state[mod] = None
@@ -180,7 +185,7 @@ if nav == "🏠 Área de Trabalho":
             
             # Criação das Abas Principais
             tab_met, tab_ms, tab_mi, tab_col, tab_rel = st.tabs([
-                "🧬 Metabólico", 
+                "🧬 Metabólico e Sistêmico", 
                 "💪 Membro Superior", 
                 "🦵 Membro Inferior", 
                 "🦴 Coluna", 
@@ -189,10 +194,14 @@ if nav == "🏠 Área de Trabalho":
             
             # --- MENU METABÓLICO ---
             with tab_met:
-                st.markdown("#### Sistema Metabólico e Ósseo")
-                with st.expander("🔸 Avaliação Sistêmica", expanded=True):
+                st.markdown("#### Doenças Sistêmicas e Ósseas")
+                with st.expander("🔸 Osteometabolismo", expanded=True):
                     if st.button("🩸 Osteoporose (Diretrizes Lancet)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'osteoporose'
+                        st.rerun()
+                with st.expander("🔸 Oncologia Óssea", expanded=True):
+                    if st.button("🎗️ Nomograma de Osteossarcoma (Sobrevida 5 Anos)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'osteosarcoma'
                         st.rerun()
 
             # --- MEMBRO SUPERIOR ---
@@ -305,6 +314,8 @@ if nav == "🏠 Área de Trabalho":
                 spine_sage.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'rotator_cuff':
                 rotator_cuff.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'osteosarcoma':
+                osteosarcoma.renderizar_ui()
                 
             # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
