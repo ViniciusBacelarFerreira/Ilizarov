@@ -3,11 +3,9 @@ from utils import gerar_grafico_velocimetro, gerar_grafico_waterfall, obter_text
 from database import salvar_registro
 
 def calcular_risco(ang_dorsal, degrau_art, var_ulnar, rest_cortical, ang_volar):
-    # Cálculo de Instabilidade em Rádio Distal (Khajonvittayakul et al., 2025)
     pontos = 0.0
     contribs = {}
     
-    # Fatores Iniciais
     if ang_dorsal:
         pontos += 1.5
         contribs["Angulação Dorsal > 20°"] = 1.5
@@ -20,7 +18,6 @@ def calcular_risco(ang_dorsal, degrau_art, var_ulnar, rest_cortical, ang_volar):
         pontos += 2.0
         contribs["Variância Ulnar > 3 mm"] = 2.0
         
-    # Fatores de Qualidade da Redução
     if rest_cortical == "Sobreposição Dorsal":
         pontos += 1.0
         contribs["Cortical: Sobreposição Dorsal"] = 1.0
@@ -32,7 +29,6 @@ def calcular_risco(ang_dorsal, degrau_art, var_ulnar, rest_cortical, ang_volar):
         pontos += 2.0
         contribs["Angulação Volar (Pós-Redução) ≤ 0°"] = 2.0
         
-    # Conversão do score para Valor Preditivo Positivo (VPP) de instabilidade
     if pontos <= 2.0:
         prob = 27.2  # Baixo
     elif pontos <= 5.0:
