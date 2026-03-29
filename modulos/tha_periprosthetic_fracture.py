@@ -3,12 +3,10 @@ from utils import gerar_grafico_velocimetro, gerar_grafico_waterfall, obter_text
 from database import salvar_registro
 
 def calcular_risco(idade, sexo, osteoporose, indicacao, abordagem, fixacao, colar):
-    # Cálculo proxy baseado nos Hazard Ratios (HR) do modelo de Wyles et al. (2023) - Mayo Clinic
     pontos = 0.0
     contribs = {}
     
     # --- FATORES NÃO MODIFICÁVEIS ---
-    # Idade (proxy: HR aumenta 1.2 a cada 10 anos a partir dos 50)
     if idade > 50:
         c_idade = ((idade - 50) / 10.0) * 1.2
         pontos += c_idade
@@ -27,7 +25,7 @@ def calcular_risco(idade, sexo, osteoporose, indicacao, abordagem, fixacao, cola
         contribs["Indicação: Fratura"] = 2.2
     elif indicacao == "Artrite Inflamatória":
         pontos += 1.8
-        contribs["Indicação: Artrite Inflam."] = 1.8
+        contribs["Indicação: Artrite Inflamatória"] = 1.8
     elif indicacao == "Osteonecrose (AVN)":
         pontos += 1.7
         contribs["Indicação: Osteonecrose"] = 1.7
@@ -48,8 +46,6 @@ def calcular_risco(idade, sexo, osteoporose, indicacao, abordagem, fixacao, cola
         pontos += 1.3
         contribs["Haste Sem Colar"] = 1.3
 
-    # Interpolação para Risco Absoluto aos 90 dias
-    # Baseado no "Best Host" (0.4%) e "Worst Host" (18.0%) da Tabela 4 do estudo
     risco_base = 0.4
     risco_maximo = 18.0
     max_pontos_possiveis = 17.0 
@@ -103,7 +99,6 @@ def renderizar_ui():
         res, contribs = st.session_state.tha_periprosthetic_fracture_res
         col_g, col_x = st.columns([1, 1.5])
         with col_g: 
-            # Como a incidência geral é baixa (0.4% a 18%), vamos ajustar o medidor visualmente
             st.plotly_chart(gerar_grafico_velocimetro(res, "complicacao"), use_container_width=True)
             st.markdown(f"<p style='text-align: center; font-size: 1.2rem; font-weight: bold; color: {'red' if res > 5.0 else 'orange' if res > 2.0 else 'green'};'>Risco Absoluto (90 dias): {res}%</p>", unsafe_allow_html=True)
             
