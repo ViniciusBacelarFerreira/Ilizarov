@@ -260,7 +260,7 @@ if nav == "🏠 Área de Trabalho":
 
             # --- MEMBRO INFERIOR ---
             elif categoria_escolhida == "🦵 Membro Inferior":
-                with st.expander("🔸 Quadril / Anca", expanded=True):
+                with st.expander("🔸 Quadril", expanded=True):
                     if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia de Quadril)", use_container_width=True, key="am_quadril"):
                         st.session_state.modulo_selecionado = 'arthro_map'
                         st.rerun()
