@@ -3,8 +3,6 @@ from utils import gerar_grafico_velocimetro, gerar_grafico_waterfall, obter_text
 from database import salvar_registro
 
 def calcular_risco(dor_severa, escolaridade_baixa, idade, comorbidades_altas):
-    # Cálculo estruturado com base na árvore de regressão do WRIST Trial (Chung et al., 2019)
-    # Estima o risco de recuperação funcional insatisfatória (baixo escore MHQ)
     pontos = 0.0
     contribs = {}
     
@@ -24,9 +22,7 @@ def calcular_risco(dor_severa, escolaridade_baixa, idade, comorbidades_altas):
     contribs["Comorbidades (≥ 2)"] = c_comorb
     pontos += c_comorb
     
-    # Risco base ajustado + penalizações
     prob = min(99.9, 10 + pontos * 0.9)
-    
     return round(prob, 1), contribs
 
 def renderizar_ui():
