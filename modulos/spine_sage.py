@@ -3,21 +3,17 @@ from utils import gerar_grafico_velocimetro, gerar_grafico_waterfall, obter_text
 from database import salvar_registro
 
 def calcular_risco(idade, sexo, bmi, copd, card, renal, has, dm, malig, ra, urgencia, sii):
-    # Cálculo proxy estruturado com base nas variáveis do SpineSage (validadas por Coia et al., 2022)
     pontos = 0.0
     contribs = {}
     
-    # Idade
     c_idade = (idade - 50) * 0.2 if idade > 50 else 0
     contribs["Idade"] = round(c_idade, 1)
     pontos += c_idade
     
-    # BMI
     c_bmi = (bmi - 25) * 0.3 if bmi > 25 else 0
     contribs["IMC"] = round(c_bmi, 1)
     pontos += c_bmi
     
-    # Comorbidades
     c_copd = 5.0 if copd else 0
     contribs["DPOC"] = c_copd; pontos += c_copd
     
@@ -39,7 +35,6 @@ def calcular_risco(idade, sexo, bmi, copd, card, renal, has, dm, malig, ra, urge
     c_ra = 4.0 if ra else 0
     contribs["Artrite Reumatoide"] = c_ra; pontos += c_ra
     
-    # Fatores Cirúrgicos
     c_urg = 5.0 if urgencia else 0
     contribs["Emergência"] = c_urg; pontos += c_urg
     
@@ -47,9 +42,7 @@ def calcular_risco(idade, sexo, bmi, copd, card, renal, has, dm, malig, ra, urge
     contribs["Índice Invasividade (SII)"] = round(c_sii, 1)
     pontos += c_sii
     
-    # Normalização simplificada para percentagem de risco
     prob = min(99.9, pontos * 0.8) 
-    
     return round(prob, 1), contribs
 
 def renderizar_ui():
@@ -69,12 +62,12 @@ def renderizar_ui():
         
     with s2:
         st.markdown("##### Comorbidades")
-        ss_copd = st.toggle("DPOC (Doença Pulmonar Obstrutiva Crónica)?")
+        ss_copd = st.toggle("DPOC (Doença Pulmonar Obstrutiva Crônica)?")
         ss_card = st.toggle("Disfunção Cardíaca (Insuficiência ou complicação prévia)?")
         ss_renal = st.toggle("Disfunção Renal?")
         ss_has = st.toggle("Hipertensão Arterial?")
         ss_dm = st.toggle("Diabetes Mellitus?")
-        ss_malig = st.toggle("Malignidade (Cancro)?")
+        ss_malig = st.toggle("Malignidade (Câncer)?")
         ss_ra = st.toggle("Artrite Reumatoide?")
         
     if st.button("Calcular Risco de Complicação (SpineSage)", key="btn_spinesage"):
