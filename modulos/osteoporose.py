@@ -20,11 +20,11 @@ def calcular_risco(idade, sexo, fratura_previa, frax_mof, fratura_em_tratamento)
     recomenda = []
     
     if (sexo == "Feminino" and idade >= 65) or (sexo == "Masculino" and idade >= 70):
-        recomenda.append("✔️ Rastreio Densitométrico (DXA) indicado pela idade.")
+        recomenda.append("✔️ Rastreamento Densitométrico (DXA) indicado pela idade.")
     if fratura_previa:
         recomenda.append("⚠️ Indicação direta para intervenção farmacológica devido a fratura prévia.")
     if frax_mof >= 35:
-        recomenda.append("💉 Limiar de custo-efetividade atingido para Denosumab (MOF ≥ 35%).")
+        recomenda.append("💉 Limiar de custo-efetividade atingido para Denosumabe (MOF ≥ 35%).")
     elif frax_mof >= 20:
         recomenda.append("💉 Limiar de custo-efetividade atingido para Bisfosfonato Intravenoso (MOF ≥ 20%).")
     elif frax_mof >= 9:
@@ -42,7 +42,7 @@ def renderizar_ui():
     with o1:
         osteo_idade = st.number_input("Idade do paciente:", min_value=0, max_value=120, value=70)
         osteo_sexo = st.selectbox("Sexo do paciente:", ["Feminino", "Masculino"], key="osteo_s")
-        osteo_frax = st.number_input("Risco FRAX a 10 anos para Fratura Major (MOF %):", min_value=0.0, max_value=100.0, value=5.0)
+        osteo_frax = st.number_input("Risco FRAX a 10 anos para Fratura Maior (MOF %):", min_value=0.0, max_value=100.0, value=5.0)
     with o2:
         osteo_prev = st.toggle("Possui histórico de fratura por fragilidade?")
         osteo_falha = st.toggle("Sofreu nova fratura enquanto recebia tratamento?")
@@ -52,7 +52,7 @@ def renderizar_ui():
         st.session_state.osteo_res = (res, contribs, recomenda)
         salvar_registro("Risco Osteoporose", res, "risco", f"FRAX MOF: {osteo_frax}%")
         
-    if st.session_state.osteo_res:
+    if st.session_state.get('osteo_res'):
         res, contribs, recomenda = st.session_state.osteo_res
         col_g, col_x = st.columns([1, 1.5])
         with col_g: st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
