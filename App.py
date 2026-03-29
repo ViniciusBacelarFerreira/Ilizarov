@@ -22,6 +22,29 @@ import modulos.osteosarcoma as osteosarcoma
 # ==========================================
 st.set_page_config(page_title="OrtoPreditor Ilizarov", layout="wide", page_icon="🦴")
 carregar_css()
+
+# CSS Extra para transformar o Radio Button em "Abas Flutuantes" (Pills)
+st.markdown("""
+<style>
+    div.row-widget.stRadio > div { flex-direction: row; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    div.row-widget.stRadio > div > label { 
+        background-color: var(--secondary-background-color); 
+        padding: 10px 20px; 
+        border-radius: 30px; 
+        border: 1px solid rgba(128, 128, 128, 0.2); 
+        cursor: pointer; 
+        transition: all 0.3s ease; 
+    }
+    div.row-widget.stRadio > div > label:hover { 
+        background-color: rgba(76, 175, 80, 0.1); 
+        border-color: #4caf50; 
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    div.row-widget.stRadio > div > label [data-testid="stMarkdownContainer"] p { font-weight: 700; margin: 0; color: var(--text-color); }
+</style>
+""", unsafe_allow_html=True)
+
 init_db()
 
 if 'autenticado' not in st.session_state:
@@ -33,7 +56,7 @@ if 'paciente_ativo' not in st.session_state:
 if 'modulo_selecionado' not in st.session_state:
     st.session_state.modulo_selecionado = None
 
-# Lista atualizada com o novo módulo de Osteossarcoma
+# Lista atualizada com todos os módulos
 lista_modulos = [
     'arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 
     'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res'
@@ -176,25 +199,24 @@ if nav == "🏠 Área de Trabalho":
         """, unsafe_allow_html=True)
         
         # =======================================================
-        # ROTEADOR DO DASHBOARD ANATÔMICO HIERÁRQUICO
+        # ROTEADOR DO DASHBOARD ANATÔMICO (ABAS FLUTUANTES)
         # =======================================================
         if st.session_state.modulo_selecionado is None:
-            st.markdown("### 🗺️ Navegação Clínica Integrada")
-            st.write("Navegue pelas abas abaixo e selecione a região anatômica para acessar as calculadoras preditivas disponíveis:")
+            st.markdown("<h3 style='text-align: center;'>🗺️ Navegação Clínica Integrada</h3>", unsafe_allow_html=True)
+            st.markdown("<p style='text-align: center; color: gray;'>Selecione a região anatômica abaixo para acessar as calculadoras preditivas:</p>", unsafe_allow_html=True)
+            
+            # O Radio agora atua como "Abas Flutuantes" devido ao CSS injetado no topo
+            categoria_escolhida = st.radio(
+                "Navegação",
+                ["🧬 Sistêmico e Ósseo", "💪 Membro Superior", "🦵 Membro Inferior", "🦴 Coluna", "🖨️ Relatórios"],
+                horizontal=True,
+                label_visibility="collapsed"
+            )
+            
             st.markdown("<br>", unsafe_allow_html=True)
-            
-            # Criação das Abas Principais
-            tab_met, tab_ms, tab_mi, tab_col, tab_rel = st.tabs([
-                "🧬 Metabólico e Sistêmico", 
-                "💪 Membro Superior", 
-                "🦵 Membro Inferior", 
-                "🦴 Coluna", 
-                "🖨️ Relatórios"
-            ])
-            
+
             # --- MENU METABÓLICO ---
-            with tab_met:
-                st.markdown("#### Doenças Sistêmicas e Ósseas")
+            if categoria_escolhida == "🧬 Sistêmico e Ósseo":
                 with st.expander("🔸 Osteometabolismo", expanded=True):
                     if st.button("🩸 Osteoporose (Diretrizes Lancet)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'osteoporose'
@@ -205,8 +227,7 @@ if nav == "🏠 Área de Trabalho":
                         st.rerun()
 
             # --- MEMBRO SUPERIOR ---
-            with tab_ms:
-                st.markdown("#### Membro Superior")
+            elif categoria_escolhida == "💪 Membro Superior":
                 with st.expander("🔸 Ombro", expanded=True):
                     if st.button("💪 RoHI (Risco de Falha no Manguito Rotador)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'rotator_cuff'
@@ -221,8 +242,7 @@ if nav == "🏠 Área de Trabalho":
                     st.info("⏳ Módulos para a mão e punho em desenvolvimento...")
 
             # --- MEMBRO INFERIOR ---
-            with tab_mi:
-                st.markdown("#### Membro Inferior")
+            elif categoria_escolhida == "🦵 Membro Inferior":
                 with st.expander("🔸 Quadril", expanded=True):
                     if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia de Quadril)", use_container_width=True, key="am_quadril"):
                         st.session_state.modulo_selecionado = 'arthro_map'
@@ -242,8 +262,7 @@ if nav == "🏠 Área de Trabalho":
                     st.info("⏳ Módulos para tornozelo e pé em desenvolvimento...")
 
             # --- COLUNA VERTEBRAL ---
-            with tab_col:
-                st.markdown("#### Coluna Vertebral")
+            elif categoria_escolhida == "🦴 Coluna":
                 with st.expander("🔸 Coluna Cervical", expanded=True):
                     if st.button("🧠 SpineSage (Complicações Pós-Operatórias)", use_container_width=True, key="ss_cerv"):
                         st.session_state.modulo_selecionado = 'spine_sage'
@@ -258,7 +277,7 @@ if nav == "🏠 Área de Trabalho":
                         st.rerun()
                         
             # --- RELATÓRIOS ---
-            with tab_rel:
+            elif categoria_escolhida == "🖨️ Relatórios":
                 st.markdown("#### Emissão de Documentos")
                 if st.button("📄 Gerar Relatório Oficial em A4", type="primary", use_container_width=True):
                     st.session_state.modulo_selecionado = 'relatorio'
