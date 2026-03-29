@@ -40,7 +40,7 @@ def renderizar_ui():
         sb_q7 = st.toggle("7. Sinto que a minha dor nas costas é terrível e que nunca vai melhorar.")
         sb_q8 = st.toggle("8. Em geral, não tenho aproveitado todas as coisas que costumava aproveitar.")
     
-    sb_q9 = st.selectbox("9. No geral, quão incómoda foi a sua dor nas costas nas últimas 2 semanas?", ["Nada", "Ligeiramente", "Moderadamente", "Muito", "Extremamente"])
+    sb_q9 = st.selectbox("9. No geral, quão incômoda foi a sua dor nas costas nas últimas 2 semanas?", ["Nada", "Ligeiramente", "Moderadamente", "Muito", "Extremamente"])
     
     if st.button("Calcular Risco de Cronicidade (STarT Back)", key="btn_sb"):
         res, contribs = calcular_risco(sb_q1, sb_q2, sb_q3, sb_q4, sb_q5, sb_q6, sb_q7, sb_q8, sb_q9)
@@ -48,7 +48,7 @@ def renderizar_ui():
         st.session_state.start_back_res = (res, contribs)
         salvar_registro("STarT Back (Dor Lombar)", res, "risco", params)
     
-    if st.session_state.start_back_res:
+    if st.session_state.get('start_back_res'):
         res, contribs = st.session_state.start_back_res
         col_g, col_x = st.columns([1, 1.5])
         with col_g:
