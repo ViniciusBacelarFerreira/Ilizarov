@@ -4,13 +4,16 @@ import pandas as pd
 import datetime
 import sqlite3
 
-# Importações dos seus arquivos e módulos
+# Importações da base de dados e utilitários
 from database import init_db, obter_df_paciente, obter_df_completo, DB_NAME, obter_classificacao
 from utils import carregar_css
+
+# Importação dos Módulos Clínicos
 import modulos.arthro_map as arthro_map
 import modulos.nhfs as nhfs
 import modulos.osteoporose as osteoporose
 import modulos.start_back as start_back
+import modulos.spine_sage as spine_sage
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -24,7 +27,8 @@ if 'autenticado' not in st.session_state:
 if 'paciente_ativo' not in st.session_state:
     st.session_state.paciente_ativo = {"nome": "", "mae": "", "prontuario": ""}
 
-lista_modulos = ['arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res']
+# Lista atualizada com o novo módulo SpineSage
+lista_modulos = ['arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 'spinesage_res']
 for mod in lista_modulos:
     if mod not in st.session_state:
         st.session_state[mod] = None
@@ -158,15 +162,26 @@ if nav == "🏠 Área de Trabalho":
         </div>
         """, unsafe_allow_html=True)
         
-        tabs = st.tabs(["📊 Painel Visual", "🦴 Artroplastia (Arthro-MAP)", "🩼 Fratura de Fémur (NHFS)", "🦴 Osteoporose (Lancet)", "🏃 Dor Lombar (STarT Back)", "📄 Relatório Oficial"])
+        # Abas atualizadas com o novo módulo
+        tabs = st.tabs([
+            "📊 Painel Visual", 
+            "🦴 Artroplastia (Arthro-MAP)", 
+            "🩼 Fratura de Fémur (NHFS)", 
+            "🦴 Osteoporose (Lancet)", 
+            "🏃 Dor Lombar (STarT Back)", 
+            "⚕️ Coluna (SpineSage)", 
+            "📄 Relatório Oficial"
+        ])
 
         painel_placeholder = tabs[0].empty()
-        relatorio_placeholder = tabs[5].empty()
+        relatorio_placeholder = tabs[6].empty()
 
+        # Renderização modular limpa
         with tabs[1]: arthro_map.renderizar_ui()
         with tabs[2]: nhfs.renderizar_ui()
         with tabs[3]: osteoporose.renderizar_ui()
         with tabs[4]: start_back.renderizar_ui()
+        with tabs[5]: spine_sage.renderizar_ui()
 
         # =======================================================
         # PREENCHIMENTO DOS PLACEHOLDERS (PAINEL E RELATÓRIO)
