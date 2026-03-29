@@ -67,5 +67,8 @@ def renderizar_ui():
             st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Composição do Score STarT Back"), use_container_width=True)
 
     with st.expander("📚 Referência Científica"):
-        st.markdown("**Naye F, Décary S, Houle C, et al.** Six Externally Validated Prognostic Models Have Potential Clinical Value to Predict Patient Health Outcomes in the Rehabilitation of Musculoskeletal Conditions: A Systematic Review. *PTJ: Physical Therapy & Rehabilitation Journal*. 2023;103:1-10.")
+        st.markdown("""
+        **Naye F, Décary S, Houle C, et al.** Six Externally Validated Prognostic Models Have Potential Clinical Value to Predict Patient Health Outcomes in the Rehabilitation of Musculoskeletal Conditions: A Systematic Review. *PTJ: Physical Therapy & Rehabilitation Journal*. 2023;103:1-10.  
+        **DOI:** [10.1093/ptj/pzad021](https://doi.org/10.1093/ptj/pzad021)
+        """)
     st.markdown("</div>", unsafe_allow_html=True)
