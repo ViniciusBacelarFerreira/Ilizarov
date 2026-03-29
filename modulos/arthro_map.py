@@ -53,9 +53,9 @@ def calcular_risco(fc, perda_sangue, ureia, procedimento, raca, asa, comorbidade
     return min(prob, 99.9), contribs
 
 def renderizar_ui():
-    st.markdown("<div class='calc-info'><b>O que calcula:</b> O modelo <b>Arthro-MAP</b> estratifica o risco de complicações major após artroplastia da anca e joelho durante o internamento.</div>", unsafe_allow_html=True)
-    st.markdown("<div class='input-card'><h4>🦴 Arthro-MAP (Risco Pós-Operatório)</h4>", unsafe_allow_html=True)
-    
+    st.markdown("<div class='calc-info'><b>O que calcula:</b> O modelo <b>Arthro-MAP</b> estratifica o risco de complicações maiores após artroplastia de quadril e joelho durante a internação.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='input-card'><h4>🦵 Arthro-MAP (Risco Pós-Operatório)</h4>", unsafe_allow_html=True)
+
     c1, c2 = st.columns(2)
     with c1:
         fc = st.number_input("Menor Frequência Cardíaca (bpm):", min_value=0, max_value=200, value=60)
