@@ -14,6 +14,7 @@ import modulos.nhfs as nhfs
 import modulos.osteoporose as osteoporose
 import modulos.start_back as start_back
 import modulos.spine_sage as spine_sage
+import modulos.rotator_cuff as rotator_cuff
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -27,8 +28,8 @@ if 'autenticado' not in st.session_state:
 if 'paciente_ativo' not in st.session_state:
     st.session_state.paciente_ativo = {"nome": "", "mae": "", "prontuario": ""}
 
-# Lista atualizada com o novo módulo SpineSage
-lista_modulos = ['arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 'spinesage_res']
+# Lista atualizada com o novo módulo Rotator Cuff (RoHI)
+lista_modulos = ['arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 'spinesage_res', 'rotator_cuff_res']
 for mod in lista_modulos:
     if mod not in st.session_state:
         st.session_state[mod] = None
@@ -162,7 +163,7 @@ if nav == "🏠 Área de Trabalho":
         </div>
         """, unsafe_allow_html=True)
         
-        # Abas atualizadas com o novo módulo
+        # Abas atualizadas com o novo módulo do Manguito Rotador
         tabs = st.tabs([
             "📊 Painel Visual", 
             "🦴 Artroplastia (Arthro-MAP)", 
@@ -170,11 +171,12 @@ if nav == "🏠 Área de Trabalho":
             "🦴 Osteoporose (Lancet)", 
             "🏃 Dor Lombar (STarT Back)", 
             "⚕️ Coluna (SpineSage)", 
+            "💪 Manguito Rotador (RoHI)", 
             "📄 Relatório Oficial"
         ])
 
         painel_placeholder = tabs[0].empty()
-        relatorio_placeholder = tabs[6].empty()
+        relatorio_placeholder = tabs[7].empty() # Atualizado para índice 7
 
         # Renderização modular limpa
         with tabs[1]: arthro_map.renderizar_ui()
@@ -182,6 +184,7 @@ if nav == "🏠 Área de Trabalho":
         with tabs[3]: osteoporose.renderizar_ui()
         with tabs[4]: start_back.renderizar_ui()
         with tabs[5]: spine_sage.renderizar_ui()
+        with tabs[6]: rotator_cuff.renderizar_ui() # NOVO MÓDULO
 
         # =======================================================
         # PREENCHIMENTO DOS PLACEHOLDERS (PAINEL E RELATÓRIO)
