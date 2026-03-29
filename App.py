@@ -23,6 +23,7 @@ import modulos.proximal_humerus_outcomes as proximal_humerus_outcomes
 import modulos.periprosthetic_fracture as periprosthetic_fracture
 import modulos.tka_periprosthetic_fracture as tka_periprosthetic_fracture
 import modulos.tha_periprosthetic_fracture as tha_periprosthetic_fracture
+import modulos.hand_surgery_complications as hand_surgery_complications
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -69,7 +70,8 @@ lista_modulos = [
     'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res', 
     'foot_ankle_id_res', 'distal_radius_res', 'distal_radius_instability_res',
     'proximal_humerus_outcomes_res', 'periprosthetic_fracture_res', 
-    'tka_periprosthetic_fracture_res', 'tha_periprosthetic_fracture_res'
+    'tka_periprosthetic_fracture_res', 'tha_periprosthetic_fracture_res',
+    'hand_surgery_complications_res'
 ]
 for mod in lista_modulos:
     if mod not in st.session_state:
@@ -251,6 +253,9 @@ if nav == "🏠 Área de Trabalho":
                 with st.expander("🔸 Antebraço"):
                     st.info("⏳ Módulos para o antebraço em desenvolvimento...")
                 with st.expander("🔸 Mão e Punho", expanded=True):
+                    if st.button("✋ Risco de Complicações Gerais (Cirurgia da Mão)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'hand_surgery_complications'
+                        st.rerun()
                     if st.button("✋ Risco de Instabilidade (Pós-Redução Rádio Distal)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'distal_radius_instability'
                         st.rerun()
@@ -260,7 +265,7 @@ if nav == "🏠 Área de Trabalho":
 
             # --- MEMBRO INFERIOR ---
             elif categoria_escolhida == "🦵 Membro Inferior":
-                with st.expander("🔸 Quadril", expanded=True):
+                with st.expander("🔸 Quadril / Anca", expanded=True):
                     if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia de Quadril)", use_container_width=True, key="am_quadril"):
                         st.session_state.modulo_selecionado = 'arthro_map'
                         st.rerun()
@@ -377,6 +382,8 @@ if nav == "🏠 Área de Trabalho":
                 tka_periprosthetic_fracture.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'tha_periprosthetic_fracture':
                 tha_periprosthetic_fracture.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'hand_surgery_complications':
+                hand_surgery_complications.renderizar_ui()
                 
             # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
