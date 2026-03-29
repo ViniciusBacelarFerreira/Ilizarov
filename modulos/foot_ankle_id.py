@@ -40,7 +40,6 @@ def calcular_risco_deng(idade, diabetes, fratura_exposta, albumina_baixa, tempo_
     c_tempo = 22 if tempo_cirurgia >= 120 else 0
     if c_tempo: contribs["Tempo Cirúrgico ≥ 2h"] = c_tempo; pontos += c_tempo
 
-    # Interpolação baseada no eixo de probabilidade do Nomograma
     if pontos <= 0: prob = 2.0
     elif pontos <= 60: prob = 2.0 + ((pontos - 0) / 60) * 28.0
     elif pontos <= 85: prob = 30.0 + ((pontos - 60) / 25) * 10.0
@@ -57,7 +56,6 @@ def calcular_risco_deng(idade, diabetes, fratura_exposta, albumina_baixa, tempo_
 def renderizar_ui():
     st.markdown("<div class='calc-info'><b>Módulos de Risco Infeccioso:</b> Selecione abaixo o modelo preditivo adequado para o cenário do seu paciente.</div>", unsafe_allow_html=True)
     
-    # Menu de seleção por pílulas (radio horizontal estilizado pelo CSS do app.py)
     modelo_infeccao = st.radio(
         "Modelos Disponíveis:",
         ["🦴 Infecção Incisional em Fratura de Tornozelo (Deng)", "🦶 Risco Geral de I&D em Cirurgia Eletiva/Geral (Bonsignore-Opp)"],
@@ -68,6 +66,7 @@ def renderizar_ui():
     st.markdown("<br>", unsafe_allow_html=True)
 
     if "Deng" in modelo_infeccao:
+        st.markdown("<div class='calc-info' style='background-color: rgba(21, 101, 192, 0.05); border-left-color: #1565c0;'>💡 <b>Sobre o submódulo Deng et al. (2023):</b> Específico para o <b>trauma do tornozelo</b>. Avalia o risco de infecção incisional pós-operatória analisando tanto o impacto sistêmico (idade, diabetes, albumina) quanto o dano tecidual direto (exposição da fratura e tempo cirúrgico).</div>", unsafe_allow_html=True)
         st.markdown("<div class='input-card'><h4>🦴 Risco de Infecção Incisional (Fratura de Tornozelo)</h4>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
@@ -107,6 +106,7 @@ def renderizar_ui():
         st.markdown("</div>", unsafe_allow_html=True)
 
     else:
+        st.markdown("<div class='calc-info' style='background-color: rgba(21, 101, 192, 0.05); border-left-color: #1565c0;'>💡 <b>Sobre o submódulo Bonsignore-Opp et al. (2024):</b> Aplicado de forma ampla a cirurgias <b>gerais e eletivas</b> do pé e tornozelo. Prevê a probabilidade de reintervenção (Irrigação e Desbridamento) em até 90 dias devido a infecções profundas, utilizando fatores práticos essenciais.</div>", unsafe_allow_html=True)
         st.markdown("<div class='input-card'><h4>🦶 Risco de Reintervenção por Infecção (I&D)</h4>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
