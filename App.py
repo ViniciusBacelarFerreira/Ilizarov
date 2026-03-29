@@ -419,4 +419,109 @@ if nav == "🏠 Área de Trabalho":
             if not df_p.empty:
                 df_l = df_p.sort_values(by="Data/Hora").groupby("Avaliação Clínica").last().reset_index()
                 cols = st.columns(3)
-                for
+                for i, r in df_l.iterrows():
+                    v = float(r['Resultado (%)'])
+                    _, cor = obter_classificacao(v, r['Tipo'])
+                    with cols[i % 3]:
+                        st.markdown(f"""
+                        <div class="dashboard-card b-{cor}">
+                            <div>
+                                <div style="font-weight:700; opacity:0.8; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px;">{r["Avaliação Clínica"]}</div>
+                                <div class="card-value t-{cor}">{v}%</div>
+                            </div>
+                            <div>
+                                <div style="font-weight:bold; font-size: 1.1rem;" class="t-{cor}">{r["Classificação"]}</div>
+                                <div style="font-size:0.8rem; opacity:0.6; margin-top: 8px;">{r["Data/Hora"]}</div>
+                            </div>
+                        </div><br>
+                        """, unsafe_allow_html=True)
+            else: 
+                st.info("Nenhum cálculo salvo ainda. Realize a avaliação na aba Arthro-MAP.")
+                    
+        with relatorio_placeholder.container():
+            st.markdown("### 🖨️ Relatório Oficial (Formato A4)")
+            linhas_html = ""
+            df_rel_pac = obter_df_paciente(st.session_state.paciente_ativo['prontuario'])
+            
+            if not df_rel_pac.empty:
+                df_latest_rel = df_rel_pac.sort_values(by="Data/Hora").groupby("Avaliação Clínica").last().reset_index()
+                for _, r in df_latest_rel.iterrows():
+                    param_str = r.get("Parâmetros Inseridos", "-")
+                    linhas_html += f"""
+                    <tr>
+                        <td style="font-weight: bold; color: #1b5e20;">{r['Avaliação Clínica']}</td>
+                        <td style="font-size: 12px; color: #555;">{param_str}</td>
+                        <td style="font-weight: bold; text-align: center; color: #333;">{r['Resultado (%)']}%</td>
+                        <td style="text-align: center; color: #333;">{r['Classificação']}</td>
+                    </tr>
+                    """
+            
+            html_relatorio = f"""
+            <html>
+            <head>
+            <style>
+                body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: transparent; margin: 0; padding: 20px; display: flex; justify-content: center; }}
+                .print-button {{ background: #1b5e20; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; }}
+                .a4-page {{ width: 210mm; min-height: 297mm; background: white; padding: 20mm; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; color: black; }}
+                .header {{ border-bottom: 3px solid #1b5e20; padding-bottom: 15px; margin-bottom: 25px; text-align: center; }}
+                .header h1 {{ margin: 0; color: #1b5e20; font-size: 26px; text-transform: uppercase; }}
+                .header h3 {{ margin: 5px 0 0 0; color: #777; font-size: 14px; }}
+                .patient-box {{ background: #f8f9fa; border-left: 4px solid #1b5e20; padding: 15px 20px; margin-bottom: 30px; }}
+                table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
+                th, td {{ border-bottom: 1px solid #eee; padding: 14px 12px; font-size: 13px; }}
+                th {{ background-color: #1b5e20; color: white; text-align: center; text-transform: uppercase; font-size: 12px; }}
+                .footer {{ position: absolute; bottom: 20mm; left: 20mm; right: 20mm; border-top: 1px solid #ddd; padding-top: 15px; text-align: center; font-size: 11px; color: #777; }}
+                @media print {{ body {{ background: white; padding: 0; display: block; }} .no-print {{ display: none !important; }} .a4-page {{ width: 100%; height: auto; padding: 0; box-shadow: none; border: none; margin: 0; }} }}
+            </style>
+            </head>
+            <body>
+                <div style="width: 210mm; max-width: 100%;">
+                    <div class="no-print"><button class="print-button" onclick="window.print()">🖨️ CLIQUE AQUI PARA IMPRIMIR OU SALVAR EM PDF</button></div>
+                    <div class="a4-page">
+                        <div class="header">
+                            <h1>Hospital Universitário Getúlio Vargas</h1>
+                            <h3>OrtoPreditor Ilizarov - Relatório de Avaliação Preditiva</h3>
+                        </div>
+                        <div class="patient-box">
+                            <p><b>Paciente:</b> {st.session_state.paciente_ativo['nome']}</p>
+                            <p><b>Registro / Prontuário:</b> {st.session_state.paciente_ativo['prontuario']}</p>
+                            <p><b>Nome da Mãe:</b> {st.session_state.paciente_ativo['mae']}</p>
+                            <p><b>Data da Emissão:</b> {datetime.datetime.now().strftime("%d/%m/%Y às %H:%M")}</p>
+                        </div>
+                        <table>
+                            <tr><th style="width: 25%;">Módulo Clínico</th><th style="width: 45%;">Parâmetros</th><th style="width: 12%;">Resultado</th><th style="width: 18%;">Classificação</th></tr>
+                            {linhas_html if linhas_html else '<tr><td colspan="4" style="text-align:center; padding: 20px;">Nenhuma avaliação realizada.</td></tr>'}
+                        </table>
+                        <div class="footer">
+                            <p>OrtoPreditor Ilizarov • HUGV - UFAM</p>
+                            <p>Made By Vinícius Bacelar Ferreira</p>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            components.html(html_relatorio, height=1200, scrolling=True)
+
+# ==========================================
+# GESTÃO & ANALYTICS (DASHBOARD)
+# ==========================================
+elif nav == "📊 Gestão & Analytics":
+    st.title("📊 Painel de Analytics do Serviço (Orto)")
+    df_g = obter_df_completo()
+    
+    if not df_g.empty:
+        total_pacientes = df_g['Prontuário'].nunique()
+        total_avaliacoes = len(df_g)
+        
+        col1, col2 = st.columns(2)
+        col1.metric("Total de Pacientes", total_pacientes)
+        col2.metric("Total de Avaliações", total_avaliacoes)
+        
+        st.markdown("---")
+        st.subheader("🗃️ Base de Dados Completa")
+        st.dataframe(df_g.sort_values(by="Data/Hora", ascending=False), use_container_width=True, hide_index=True)
+    else: 
+        st.info("Nenhum dado registrado na base de dados.")
+
+st.markdown("<div class='watermark'>Made By Vinícius Bacelar Ferreira</div>", unsafe_allow_html=True)
