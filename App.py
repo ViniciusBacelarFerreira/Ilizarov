@@ -19,6 +19,7 @@ import modulos.osteosarcoma as osteosarcoma
 import modulos.foot_ankle_id as foot_ankle_id
 import modulos.distal_radius as distal_radius
 import modulos.distal_radius_instability as distal_radius_instability
+import modulos.proximal_humerus_outcomes as proximal_humerus_outcomes
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -63,7 +64,8 @@ if 'modulo_selecionado' not in st.session_state:
 lista_modulos = [
     'arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 
     'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res', 
-    'foot_ankle_id_res', 'distal_radius_res', 'distal_radius_instability_res'
+    'foot_ankle_id_res', 'distal_radius_res', 'distal_radius_instability_res',
+    'proximal_humerus_outcomes_res'
 ]
 for mod in lista_modulos:
     if mod not in st.session_state:
@@ -235,6 +237,9 @@ if nav == "🏠 Área de Trabalho":
                     if st.button("💪 RoHI (Risco de Falha no Manguito Rotador)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'rotator_cuff'
                         st.rerun()
+                    if st.button("💪 Adequação do Seguimento (Fratura Úmero Proximal)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'proximal_humerus_outcomes'
+                        st.rerun()
                 with st.expander("🔸 Braço"):
                     st.info("⏳ Módulos para o braço em desenvolvimento...")
                 with st.expander("🔸 Cotovelo"):
@@ -351,6 +356,8 @@ if nav == "🏠 Área de Trabalho":
                 distal_radius.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'distal_radius_instability':
                 distal_radius_instability.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'proximal_humerus_outcomes':
+                proximal_humerus_outcomes.renderizar_ui()
                 
             # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
