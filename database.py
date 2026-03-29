@@ -30,6 +30,10 @@ def obter_classificacao(prob, tipo):
         if prob < 5: return ("Baixo Risco", "green")
         elif prob < 20: return ("Risco Moderado", "orange")
         else: return ("Alto Risco", "red")
+    elif tipo == "melhora":
+        if prob >= 80: return ("Excelente", "green")
+        elif prob >= 60: return ("Aceitável", "orange")
+        else: return ("Inadequado", "red")
     else:
         if prob < 30: return ("Baixo Risco", "green")
         elif prob < 60: return ("Risco Moderado", "orange")
@@ -78,3 +82,12 @@ def obter_df_completo():
     df = pd.read_sql(query, conn)
     conn.close()
     return df
+
+def excluir_prontuario(prontuario):
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    # Exclui todos os registros vinculados àquele número de prontuário
+    c.execute('DELETE FROM avaliacoes WHERE prontuario = ?', (str(prontuario),))
+    conn.commit()
+    conn.close()
+    return True
