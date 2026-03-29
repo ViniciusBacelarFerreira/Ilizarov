@@ -34,10 +34,10 @@ def calcular_risco(idade, sexo, hb_baixa, amts_baixo, inst, comorb, malig):
     return min(prob, 99.9), contribs
 
 def renderizar_ui():
-    st.markdown("<div class='calc-info'><b>O que calcula:</b> O <b>Nottingham Hip Fracture Score (NHFS)</b> prediz a probabilidade de <b>mortalidade em 30 dias</b> em pacientes com fratura do fémur proximal.</div>", unsafe_allow_html=True)
-    st.markdown("<div class='input-card'><h4>🩼 NHFS (Risco de Mortalidade)</h4>", unsafe_allow_html=True)
-    
-    n1, n2 = st.columns(2)
+    st.markdown("<div class='calc-info'><b>O que calcula:</b> O <b>Nottingham Hip Fracture Score (NHFS)</b> prediz a probabilidade de <b>mortalidade em 30 dias</b> em pacientes com fratura do fêmur proximal.</div>", unsafe_allow_html=True)
+    # (...)
+        nhfs_malig = st.toggle("O paciente possui diagnóstico de malignidade (câncer)?")
+
     with n1:
         nhfs_idade = st.number_input("Idade do paciente (anos):", min_value=0, max_value=120, value=75)
         nhfs_sexo = st.selectbox("Sexo biológico:", ["Feminino", "Masculino"])
