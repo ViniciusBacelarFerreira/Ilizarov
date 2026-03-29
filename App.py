@@ -16,6 +16,7 @@ import modulos.start_back as start_back
 import modulos.spine_sage as spine_sage
 import modulos.rotator_cuff as rotator_cuff
 import modulos.osteosarcoma as osteosarcoma
+import modulos.foot_ankle_id as foot_ankle_id
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -59,7 +60,7 @@ if 'modulo_selecionado' not in st.session_state:
 # Lista atualizada com todos os módulos
 lista_modulos = [
     'arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 
-    'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res'
+    'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res', 'foot_ankle_id_res'
 ]
 for mod in lista_modulos:
     if mod not in st.session_state:
@@ -205,7 +206,6 @@ if nav == "🏠 Área de Trabalho":
             st.markdown("<h3 style='text-align: center;'>🗺️ Navegação Clínica Integrada</h3>", unsafe_allow_html=True)
             st.markdown("<p style='text-align: center; color: gray;'>Selecione a região anatômica abaixo para acessar as calculadoras preditivas:</p>", unsafe_allow_html=True)
             
-            # O Radio agora atua como "Abas Flutuantes" devido ao CSS injetado no topo
             categoria_escolhida = st.radio(
                 "Navegação",
                 ["🧬 Sistêmico e Ósseo", "💪 Membro Superior", "🦵 Membro Inferior", "🦴 Coluna", "🖨️ Relatórios"],
@@ -258,8 +258,10 @@ if nav == "🏠 Área de Trabalho":
                         st.rerun()
                 with st.expander("🔸 Perna"):
                     st.info("⏳ Módulos para a perna em desenvolvimento...")
-                with st.expander("🔸 Tornozelo e Pé"):
-                    st.info("⏳ Módulos para tornozelo e pé em desenvolvimento...")
+                with st.expander("🔸 Tornozelo e Pé", expanded=True):
+                    if st.button("🦶 Risco de Reintervenção (I&D) em Pé/Tornozelo", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'foot_ankle_id'
+                        st.rerun()
 
             # --- COLUNA VERTEBRAL ---
             elif categoria_escolhida == "🦴 Coluna":
@@ -335,6 +337,8 @@ if nav == "🏠 Área de Trabalho":
                 rotator_cuff.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'osteosarcoma':
                 osteosarcoma.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'foot_ankle_id':
+                foot_ankle_id.renderizar_ui()
                 
             # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
