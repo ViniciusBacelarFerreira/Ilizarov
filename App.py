@@ -171,64 +171,89 @@ if nav == "🏠 Área de Trabalho":
         """, unsafe_allow_html=True)
         
         # =======================================================
-        # ROTEADOR DO DASHBOARD ANATÓMICO
+        # ROTEADOR DO DASHBOARD ANATÓMICO HIERÁRQUICO
         # =======================================================
         if st.session_state.modulo_selecionado is None:
-            st.markdown("### 🗺️ Mapa Anatómico & Avaliação Sistémica")
-            st.write("Selecione a região anatómica ou o sistema metabólico que deseja avaliar para este paciente:")
+            st.markdown("### 🗺️ Navegação Clínica Integrada")
+            st.write("Navegue pelas abas abaixo e selecione a região anatómica para aceder às calculadoras preditivas disponíveis:")
             st.markdown("<br>", unsafe_allow_html=True)
             
-            col_sys, espaco, col_anat = st.columns([1, 0.2, 2.5])
+            # Criação das Abas Principais
+            tab_met, tab_ms, tab_mi, tab_col, tab_rel = st.tabs([
+                "🧬 Metabólico", 
+                "💪 Membro Superior", 
+                "🦵 Membro Inferior", 
+                "🦴 Coluna", 
+                "🖨️ Relatórios"
+            ])
             
-            # --- MENU SISTÉMICO (ESQUERDA) ---
-            with col_sys:
-                st.markdown("<div class='sidebar-section-title' style='text-align:left; margin-top:0;'>Metabolismo & Relatórios</div>", unsafe_allow_html=True)
-                if st.button("🩸 Osteoporose\n(Diretrizes Lancet)", use_container_width=True):
-                    st.session_state.modulo_selecionado = 'osteoporose'
-                    st.rerun()
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("📄 Relatório Oficial em A4", type="primary", use_container_width=True):
-                    st.session_state.modulo_selecionado = 'relatorio'
-                    st.rerun()
+            # --- MENU METABÓLICO ---
+            with tab_met:
+                st.markdown("#### Sistema Metabólico e Ósseo")
+                with st.expander("🔸 Avaliação Sistémica", expanded=True):
+                    if st.button("🩸 Osteoporose (Diretrizes Lancet)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'osteoporose'
+                        st.rerun()
 
-            # --- MAPA ANATÓMICO (DIREITA) ---
-            with col_anat:
-                st.markdown("<div class='sidebar-section-title' style='text-align:center; margin-top:0;'>Esqueleto & Articulações</div>", unsafe_allow_html=True)
-                
-                # Linha 1: Cervical e Ombros
-                c1, c2, c3 = st.columns([1, 1.2, 1])
-                with c1:
-                    if st.button("💪 Ombro (Esq.)\n(RoHI Manguito)", use_container_width=True):
+            # --- MEMBRO SUPERIOR ---
+            with tab_ms:
+                st.markdown("#### Membro Superior")
+                with st.expander("🔸 Ombro", expanded=True):
+                    if st.button("💪 RoHI (Risco de Falha no Manguito Rotador)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'rotator_cuff'
                         st.rerun()
-                with c2:
-                    if st.button("🧠 Coluna Cervical/Torácica\n(SpineSage)", use_container_width=True):
-                        st.session_state.modulo_selecionado = 'spine_sage'
-                        st.rerun()
-                with c3:
-                    if st.button("💪 Ombro (Dir.)\n(RoHI Manguito)", use_container_width=True):
-                        st.session_state.modulo_selecionado = 'rotator_cuff'
-                        st.rerun()
-                
-                # Linha 2: Lombar
-                c4, c5, c6 = st.columns([1, 1.2, 1])
-                with c5:
-                    if st.button("🦴 Coluna Lombar\n(STarT Back)", use_container_width=True):
-                        st.session_state.modulo_selecionado = 'start_back'
-                        st.rerun()
-                
-                st.markdown("<br>", unsafe_allow_html=True)
-                
-                # Linha 3: Membros Inferiores
-                c7, c8 = st.columns([1, 1])
-                with c7:
-                    if st.button("🩼 Fratura de Fémur\n(Mortalidade NHFS)", use_container_width=True):
-                        st.session_state.modulo_selecionado = 'nhfs'
-                        st.rerun()
-                with c8:
-                    if st.button("🦵 Artroplastia Anca/Joelho\n(Risco Arthro-MAP)", use_container_width=True):
+                with st.expander("🔸 Braço"):
+                    st.info("⏳ Módulos para o braço em desenvolvimento...")
+                with st.expander("🔸 Cotovelo"):
+                    st.info("⏳ Módulos para o cotovelo em desenvolvimento...")
+                with st.expander("🔸 Antebraço"):
+                    st.info("⏳ Módulos para o antebraço em desenvolvimento...")
+                with st.expander("🔸 Mão e Punho"):
+                    st.info("⏳ Módulos para a mão e punho em desenvolvimento...")
+
+            # --- MEMBRO INFERIOR ---
+            with tab_mi:
+                st.markdown("#### Membro Inferior")
+                with st.expander("🔸 Anca / Quadril", expanded=True):
+                    if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia Anca)", use_container_width=True, key="am_anca"):
                         st.session_state.modulo_selecionado = 'arthro_map'
                         st.rerun()
+                    if st.button("🩼 NHFS (Mortalidade em Fratura do Fémur)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'nhfs'
+                        st.rerun()
+                with st.expander("🔸 Coxa"):
+                    st.info("⏳ Módulos para a coxa em desenvolvimento...")
+                with st.expander("🔸 Joelho", expanded=True):
+                    if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia Joelho)", use_container_width=True, key="am_joelho"):
+                        st.session_state.modulo_selecionado = 'arthro_map'
+                        st.rerun()
+                with st.expander("🔸 Perna"):
+                    st.info("⏳ Módulos para a perna em desenvolvimento...")
+                with st.expander("🔸 Tornozelo e Pé"):
+                    st.info("⏳ Módulos para tornozelo e pé em desenvolvimento...")
+
+            # --- COLUNA VERTEBRAL ---
+            with tab_col:
+                st.markdown("#### Coluna Vertebral")
+                with st.expander("🔸 Coluna Cervical", expanded=True):
+                    if st.button("🧠 SpineSage (Complicações Pós-Operatórias)", use_container_width=True, key="ss_cerv"):
+                        st.session_state.modulo_selecionado = 'spine_sage'
+                        st.rerun()
+                with st.expander("🔸 Coluna Torácica", expanded=True):
+                    if st.button("🧠 SpineSage (Complicações Pós-Operatórias)", use_container_width=True, key="ss_tor"):
+                        st.session_state.modulo_selecionado = 'spine_sage'
+                        st.rerun()
+                with st.expander("🔸 Coluna Lombar", expanded=True):
+                    if st.button("🏃 STarT Back (Triagem de Dor Lombar)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'start_back'
+                        st.rerun()
+                        
+            # --- RELATÓRIOS ---
+            with tab_rel:
+                st.markdown("#### Emissão de Documentos")
+                if st.button("📄 Gerar Relatório Oficial em A4", type="primary", use_container_width=True):
+                    st.session_state.modulo_selecionado = 'relatorio'
+                    st.rerun()
 
             # --- PAINEL DE RESULTADOS CONSOLIDADOS NA TELA INICIAL ---
             st.markdown("<hr style='opacity: 0.2; margin: 40px 0;'>", unsafe_allow_html=True)
@@ -254,20 +279,20 @@ if nav == "🏠 Área de Trabalho":
                         </div><br>
                         """, unsafe_allow_html=True)
             else: 
-                st.info("Nenhuma avaliação registada no prontuário deste paciente. Selecione um módulo no mapa acima para iniciar.")
+                st.info("Nenhuma avaliação registada no prontuário deste paciente. Navegue pelo menu acima para iniciar.")
 
         # =======================================================
         # RENDERIZAÇÃO ISOLADA DO MÓDULO SELECIONADO
         # =======================================================
         else:
-            # Botão de retorno global
-            if st.button("⬅️ Voltar ao Mapa Anatómico"):
+            # Botão de retorno global para a Navegação Clínica
+            if st.button("⬅️ Voltar à Navegação Anatómica"):
                 st.session_state.modulo_selecionado = None
                 st.rerun()
                 
             st.markdown("<hr style='opacity: 0.1; margin: 10px 0 20px 0;'>", unsafe_allow_html=True)
             
-            # Roteamento para a interface correta
+            # Roteamento para a interface correta do módulo
             if st.session_state.modulo_selecionado == 'arthro_map':
                 arthro_map.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'nhfs':
@@ -281,7 +306,7 @@ if nav == "🏠 Área de Trabalho":
             elif st.session_state.modulo_selecionado == 'rotator_cuff':
                 rotator_cuff.renderizar_ui()
                 
-            # Módulo de Relatório Especial
+            # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
                 st.markdown("### 🖨️ Relatório Oficial (Formato A4)")
                 linhas_html = ""
