@@ -28,7 +28,7 @@ if 'autenticado' not in st.session_state:
 if 'paciente_ativo' not in st.session_state:
     st.session_state.paciente_ativo = {"nome": "", "mae": "", "prontuario": ""}
 
-# Variável de controlo para o Dashboard Anatómico
+# Variável de controle para o Dashboard Anatômico
 if 'modulo_selecionado' not in st.session_state:
     st.session_state.modulo_selecionado = None
 
@@ -141,16 +141,16 @@ if nav == "🏠 Área de Trabalho":
                 else:
                     st.warning("Nenhum paciente encontrado.")
             else: 
-                st.info("Sem registos na base de dados no momento.")
+                st.info("Sem registros na base de dados no momento.")
             st.markdown("</div>", unsafe_allow_html=True)
             
         with c2:
-            st.markdown("<div class='input-card'><h3>➕ Registar Novo Paciente</h3>", unsafe_allow_html=True)
+            st.markdown("<div class='input-card'><h3>➕ Registrar Novo Paciente</h3>", unsafe_allow_html=True)
             nn = st.text_input("Nome Completo do Paciente:")
             nm = st.text_input("Nome da Mãe:")
             np = st.text_input("Número do Prontuário:")
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Registar e Iniciar Atendimento", use_container_width=True) and nn and np:
+            if st.button("Registrar e Iniciar Atendimento", use_container_width=True) and nn and np:
                 st.session_state.paciente_ativo = {"nome": nn, "mae": nm, "prontuario": str(np)}
                 st.session_state.modulo_selecionado = None
                 st.rerun()
@@ -160,7 +160,7 @@ if nav == "🏠 Área de Trabalho":
         st.markdown(f"""
         <div class="patient-header">
             <div>
-                <p style="font-size:0.85rem; opacity:0.8; margin-bottom:5px; text-transform:uppercase; letter-spacing: 1px;">Prontuário Eletrónico Ativo</p>
+                <p style="font-size:0.85rem; opacity:0.8; margin-bottom:5px; text-transform:uppercase; letter-spacing: 1px;">Prontuário Eletrônico Ativo</p>
                 <h2 style="margin-top:0; margin-bottom:0;">👤 {st.session_state.paciente_ativo["nome"]}</h2>
             </div>
             <div style="text-align: right;">
@@ -171,11 +171,11 @@ if nav == "🏠 Área de Trabalho":
         """, unsafe_allow_html=True)
         
         # =======================================================
-        # ROTEADOR DO DASHBOARD ANATÓMICO HIERÁRQUICO
+        # ROTEADOR DO DASHBOARD ANATÔMICO HIERÁRQUICO
         # =======================================================
         if st.session_state.modulo_selecionado is None:
             st.markdown("### 🗺️ Navegação Clínica Integrada")
-            st.write("Navegue pelas abas abaixo e selecione a região anatómica para aceder às calculadoras preditivas disponíveis:")
+            st.write("Navegue pelas abas abaixo e selecione a região anatômica para acessar as calculadoras preditivas disponíveis:")
             st.markdown("<br>", unsafe_allow_html=True)
             
             # Criação das Abas Principais
@@ -190,7 +190,7 @@ if nav == "🏠 Área de Trabalho":
             # --- MENU METABÓLICO ---
             with tab_met:
                 st.markdown("#### Sistema Metabólico e Ósseo")
-                with st.expander("🔸 Avaliação Sistémica", expanded=True):
+                with st.expander("🔸 Avaliação Sistêmica", expanded=True):
                     if st.button("🩸 Osteoporose (Diretrizes Lancet)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'osteoporose'
                         st.rerun()
@@ -215,16 +215,16 @@ if nav == "🏠 Área de Trabalho":
             with tab_mi:
                 st.markdown("#### Membro Inferior")
                 with st.expander("🔸 Quadril", expanded=True):
-                    if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia Anca)", use_container_width=True, key="am_anca"):
+                    if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia de Quadril)", use_container_width=True, key="am_quadril"):
                         st.session_state.modulo_selecionado = 'arthro_map'
                         st.rerun()
-                    if st.button("🩼 NHFS (Mortalidade em Fratura do Fémur)", use_container_width=True):
+                    if st.button("🩼 NHFS (Mortalidade em Fratura do Fêmur)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'nhfs'
                         st.rerun()
                 with st.expander("🔸 Coxa"):
                     st.info("⏳ Módulos para a coxa em desenvolvimento...")
                 with st.expander("🔸 Joelho", expanded=True):
-                    if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia Joelho)", use_container_width=True, key="am_joelho"):
+                    if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia de Joelho)", use_container_width=True, key="am_joelho"):
                         st.session_state.modulo_selecionado = 'arthro_map'
                         st.rerun()
                 with st.expander("🔸 Perna"):
@@ -279,14 +279,14 @@ if nav == "🏠 Área de Trabalho":
                         </div><br>
                         """, unsafe_allow_html=True)
             else: 
-                st.info("Nenhuma avaliação registada no prontuário deste paciente. Navegue pelo menu acima para iniciar.")
+                st.info("Nenhuma avaliação registrada no prontuário deste paciente. Navegue pelo menu acima para iniciar.")
 
         # =======================================================
         # RENDERIZAÇÃO ISOLADA DO MÓDULO SELECIONADO
         # =======================================================
         else:
             # Botão de retorno global para a Navegação Clínica
-            if st.button("⬅️ Voltar à Navegação Anatómica"):
+            if st.button("⬅️ Voltar à Navegação Anatômica"):
                 st.session_state.modulo_selecionado = None
                 st.rerun()
                 
@@ -345,7 +345,7 @@ if nav == "🏠 Área de Trabalho":
                 </head>
                 <body>
                     <div style="width: 210mm; max-width: 100%;">
-                        <div class="no-print"><button class="print-button" onclick="window.print()">🖨️ CLIQUE AQUI PARA IMPRIMIR OU GUARDAR EM PDF</button></div>
+                        <div class="no-print"><button class="print-button" onclick="window.print()">🖨️ CLIQUE AQUI PARA IMPRIMIR OU SALVAR EM PDF</button></div>
                         <div class="a4-page">
                             <div class="header">
                                 <h1>Hospital Universitário Getúlio Vargas</h1>
@@ -353,7 +353,7 @@ if nav == "🏠 Área de Trabalho":
                             </div>
                             <div class="patient-box">
                                 <p><b>Paciente:</b> {st.session_state.paciente_ativo['nome']}</p>
-                                <p><b>Registo / Prontuário:</b> {st.session_state.paciente_ativo['prontuario']}</p>
+                                <p><b>Registro / Prontuário:</b> {st.session_state.paciente_ativo['prontuario']}</p>
                                 <p><b>Nome da Mãe:</b> {st.session_state.paciente_ativo['mae']}</p>
                                 <p><b>Data da Emissão:</b> {datetime.datetime.now().strftime("%d/%m/%Y às %H:%M")}</p>
                             </div>
@@ -390,6 +390,6 @@ elif nav == "📊 Gestão & Analytics":
         st.subheader("🗃️ Base de Dados Completa")
         st.dataframe(df_g.sort_values(by="Data/Hora", ascending=False), use_container_width=True, hide_index=True)
     else: 
-        st.info("Nenhum dado registado na base de dados.")
+        st.info("Nenhum dado registrado na base de dados.")
 
 st.markdown("<div class='watermark'>Made By Vinícius Bacelar Ferreira</div>", unsafe_allow_html=True)
