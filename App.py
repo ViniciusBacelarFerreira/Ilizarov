@@ -22,6 +22,7 @@ import modulos.distal_radius_instability as distal_radius_instability
 import modulos.proximal_humerus_outcomes as proximal_humerus_outcomes
 import modulos.periprosthetic_fracture as periprosthetic_fracture
 import modulos.tka_periprosthetic_fracture as tka_periprosthetic_fracture
+import modulos.tha_periprosthetic_fracture as tha_periprosthetic_fracture
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -67,7 +68,8 @@ lista_modulos = [
     'arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 
     'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res', 
     'foot_ankle_id_res', 'distal_radius_res', 'distal_radius_instability_res',
-    'proximal_humerus_outcomes_res', 'periprosthetic_fracture_res', 'tka_periprosthetic_fracture_res'
+    'proximal_humerus_outcomes_res', 'periprosthetic_fracture_res', 
+    'tka_periprosthetic_fracture_res', 'tha_periprosthetic_fracture_res'
 ]
 for mod in lista_modulos:
     if mod not in st.session_state:
@@ -268,6 +270,9 @@ if nav == "🏠 Área de Trabalho":
                     if st.button("🦵 Risco de Fratura Periprotésica (Artroplastia ≥ 80 anos)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'periprosthetic_fracture'
                         st.rerun()
+                    if st.button("🦵 Risco de Fratura Periprotésica - Mayo Clinic (ATQ Geral)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'tha_periprosthetic_fracture'
+                        st.rerun()
                 with st.expander("🔸 Coxa"):
                     st.info("⏳ Módulos para a coxa em desenvolvimento...")
                 with st.expander("🔸 Joelho", expanded=True):
@@ -370,6 +375,8 @@ if nav == "🏠 Área de Trabalho":
                 periprosthetic_fracture.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'tka_periprosthetic_fracture':
                 tka_periprosthetic_fracture.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'tha_periprosthetic_fracture':
+                tha_periprosthetic_fracture.renderizar_ui()
                 
             # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
