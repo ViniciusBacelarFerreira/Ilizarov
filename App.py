@@ -78,6 +78,12 @@ def gerar_grafico_velocimetro(prob, tipo="risco"):
              {'range': [60, 100], 'color': "rgba(198, 40, 40, 0.8)"}]
     title = "Risco Estimado"
 
+    # Ajuste de cores para módulos de menor mortalidade
+    if tipo == "complicacao":
+        steps = [{'range': [0, 5], 'color': "rgba(46, 125, 50, 0.8)"}, 
+                 {'range': [5, 20], 'color': "rgba(239, 108, 0, 0.8)"}, 
+                 {'range': [20, 100], 'color': "rgba(198, 40, 40, 0.8)"}]
+
     fig = go.Figure(go.Indicator(
         mode="gauge+number", value=prob, number={'suffix': "%", 'font': {'size': 40, 'color': '#333'}},
         domain={'x': [0, 1], 'y': [0, 1]}, title={'text': title, 'font': {'size': 18, 'color': '#555'}},
@@ -191,9 +197,6 @@ def risco_osteoporose_lancet(idade, sexo, fratura_previa, frax_mof, fratura_em_t
     return prob, contribs, recomenda
 
 def risco_start_back_tool(q1, q2, q3, q4, q5, q6, q7, q8, q9):
-    """
-    STarT Back Screening Tool - Avalia o risco de prognóstico desfavorável em dor lombar.
-    """
     pontos_fisicos = sum([1 for q in [q1, q2, q3, q4] if q])
     pontos_psico = sum([1 for q in [q5, q6, q7, q8] if q])
     
@@ -203,7 +206,7 @@ def risco_start_back_tool(q1, q2, q3, q4, q5, q6, q7, q8, q9):
     total = pontos_fisicos + pontos_psico
     
     if total <= 3:
-        prob = 15.0 # Risco Baixo (aprox. probabilidade de cronicidade)
+        prob = 15.0 # Risco Baixo
     elif pontos_psico <= 3:
         prob = 50.0 # Risco Médio
     else:
@@ -220,9 +223,14 @@ def risco_start_back_tool(q1, q2, q3, q4, q5, q6, q7, q8, q9):
 # GESTÃO DE DADOS (SQLITE)
 # ==========================================
 def obter_classificacao(prob, tipo):
-    if prob < 30: return ("Baixo Risco", "green")
-    elif prob < 60: return ("Risco Moderado", "orange")
-    else: return ("Alto Risco", "red")
+    if tipo == "complicacao":
+        if prob < 5: return ("Baixo Risco", "green")
+        elif prob < 20: return ("Risco Moderado", "orange")
+        else: return ("Alto Risco", "red")
+    else:
+        if prob < 30: return ("Baixo Risco", "green")
+        elif prob < 60: return ("Risco Moderado", "orange")
+        else: return ("Alto Risco", "red")
 
 def salvar_registro(mod, prob, tipo, parametros=""):
     pac = st.session_state.paciente_ativo['nome']
@@ -236,7 +244,7 @@ def salvar_registro(mod, prob, tipo, parametros=""):
     c.execute('''
         INSERT INTO avaliacoes (data_hora, prontuario, paciente, mae, avaliacao_clinica, parametros, resultado, classificacao, tipo)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''')
+    ''', (data, pront, pac, mae, mod, parametros, round(prob, 1), classif, tipo))
     conn.commit()
     conn.close()
     return True
@@ -437,12 +445,17 @@ if nav == "🏠 Área de Trabalho":
             if st.button("Calcular Risco Arthro-MAP", key="btn_arthro"):
                 res, contribs = risco_complicacao_arthro_map(fc, sangue, ureia, proc, raca, asa, comorbidade, frat)
                 st.session_state.arthro_map_res = (res, contribs)
-                salvar_registro("Arthro-MAP (Complicações)", res, "risco", f"FC: {fc} bpm | Sangue: {sangue}mL")
+                salvar_registro("Arthro-MAP (Complicações)", res, "complicacao", f"FC: {fc} bpm | Sangue: {sangue}mL")
             if st.session_state.arthro_map_res:
                 res, contribs = st.session_state.arthro_map_res
                 col_g, col_x = st.columns([1, 1.5])
-                with col_g: st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
+                with col_g: st.plotly_chart(gerar_grafico_velocimetro(res, "complicacao"), use_container_width=True)
                 with col_x: st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Impacto Variáveis (Arthro-MAP)"), use_container_width=True)
+            
+            with st.expander("📚 Referência Científica"):
+                st.markdown("""
+                **Wuerz TH, Kent DM, Malchau H, Rubash HE.** A Nomogram to Predict Major Complications After Hip and Knee Arthroplasty. *The Journal of Arthroplasty*. 2014;29:1457-1462.
+                """)
 
         with tabs[2]: 
             st.markdown("<div class='calc-info'><b>O que calcula:</b> O <b>Nottingham Hip Fracture Score (NHFS)</b> prediz a probabilidade de <b>mortalidade em 30 dias</b> em pacientes com fratura do fémur proximal.</div>", unsafe_allow_html=True)
@@ -466,6 +479,11 @@ if nav == "🏠 Área de Trabalho":
                 col_g, col_x = st.columns([1, 1.5])
                 with col_g: st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
                 with col_x: st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Impacto das Variáveis (NHFS)"), use_container_width=True)
+                
+            with st.expander("📚 Referência Científica"):
+                st.markdown("""
+                **Stanley C, Lennon D, Moran C, Vasireddy A, Rowan F.** Risk scoring models for patients with proximal femur fractures: Qualitative systematic review assessing 30-day mortality and ease of use. *Injury*. 2023;54:111017.
+                """)
 
         with tabs[3]:
             st.markdown("<div class='calc-info'><b>O que avalia:</b> Diretrizes de avaliação de risco de osteoporose e limiares terapêuticos.</div>", unsafe_allow_html=True)
@@ -489,6 +507,11 @@ if nav == "🏠 Área de Trabalho":
                 with col_x:
                     st.markdown("##### 🩺 Recomendações Clínicas")
                     for rec in recomenda: st.info(rec)
+                    
+            with st.expander("📚 Referência Científica"):
+                st.markdown("""
+                **Ye C, Ebeling P, Kline G.** Osteoporosis. *The Lancet*. 2025;406:2003-16.
+                """)
 
         with tabs[4]:
             st.markdown("<div class='calc-info'><b>O que avalia:</b> O <b>STarT Back Screening Tool</b> é um dos 6 modelos prognósticos validados e considerados clinicamente valiosos para reabilitação musculoesquelética. Identifica preditores físicos e psicossociais para dor lombar persistente.</div>", unsafe_allow_html=True)
@@ -535,6 +558,12 @@ if nav == "🏠 Área de Trabalho":
                         st.error("🔴 **Alto Risco:** Indicação de tratamento combinado (fisioterapia associada a abordagem psicossocial/cognitivo-comportamental para reduzir comportamentos de medo e evitação).")
                     
                     st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Composição do Score STarT Back"), use_container_width=True)
+
+            with st.expander("📚 Referência Científica"):
+                st.markdown("""
+                **Naye F, Décary S, Houle C, et al.** Six Externally Validated Prognostic Models Have Potential Clinical Value to Predict Patient Health Outcomes in the Rehabilitation of Musculoskeletal Conditions: A Systematic Review. *PTJ: Physical Therapy & Rehabilitation Journal*. 2023;103:1-10.   
+                **DOI:** [10.1093/ptj/pzad021](https://doi.org/10.1093/ptj/pzad021)
+                """)
 
         # =======================================================
         # PREENCHIMENTO DOS PLACEHOLDERS (PAINEL E RELATÓRIO)
