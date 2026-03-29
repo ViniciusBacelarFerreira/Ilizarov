@@ -17,8 +17,8 @@ if 'autenticado' not in st.session_state:
 if 'paciente_ativo' not in st.session_state:
     st.session_state.paciente_ativo = {"nome": "", "mae": "", "prontuario": ""}
 
-# Variáveis para armazenar o resultado atual na tela sem recarregar a página
-lista_modulos = ['arthro_map_res', 'nhfs_res']
+# Variáveis para armazenar o resultado atual no ecrã
+lista_modulos = ['arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res']
 for mod in lista_modulos:
     if mod not in st.session_state:
         st.session_state[mod] = None
@@ -73,10 +73,9 @@ def gerar_grafico_waterfall(contribuicoes, titulo="Impacto das Variáveis"):
     return fig
 
 def gerar_grafico_velocimetro(prob, tipo="risco"):
-    # Escala geral de probabilidade de complicação/mortalidade
-    steps = [{'range': [0, 5], 'color': "rgba(46, 125, 50, 0.8)"}, 
-             {'range': [5, 20], 'color': "rgba(239, 108, 0, 0.8)"}, 
-             {'range': [20, 100], 'color': "rgba(198, 40, 40, 0.8)"}]
+    steps = [{'range': [0, 30], 'color': "rgba(46, 125, 50, 0.8)"}, 
+             {'range': [30, 60], 'color': "rgba(239, 108, 0, 0.8)"}, 
+             {'range': [60, 100], 'color': "rgba(198, 40, 40, 0.8)"}]
     title = "Risco Estimado"
 
     fig = go.Figure(go.Indicator(
@@ -99,45 +98,34 @@ def obter_texto_explicativo(contribuicoes):
 # CÁLCULOS CLÍNICOS (ILIZAROV)
 # ==========================================
 def risco_complicacao_arthro_map(fc, perda_sangue, ureia, procedimento, raca, asa, comorbidade, fratura):
-    """
-    Arthro-MAP (Wuerz et al., 2014) - Risco de Complicação Maior em Artroplastias
-    """
     pontos = 0.0
     contribs = {}
-
     c_fc = fc * (80.0 / 120.0) 
     contribs["Freq. Cardíaca"] = round(c_fc, 1)
     pontos += c_fc
-
     c_sangue = perda_sangue * (98.0 / 4000.0)
     contribs["Perda Sangue"] = round(c_sangue, 1)
     pontos += c_sangue
-
     c_ureia = ureia * (100.0 / 100.0)
     contribs["Ureia"] = round(c_ureia, 1)
     pontos += c_ureia
-
     c_proc = 0
     if procedimento == "Parcial": c_proc = 16
     elif procedimento == "Revisão": c_proc = 29
     contribs["Procedimento"] = c_proc
     pontos += c_proc
-
     c_raca = 28 if raca == "Branco" else 0
     contribs["Raça"] = c_raca
     pontos += c_raca
-
     c_asa = 29 if asa == "ASA > 2 (III, IV, V)" else 0
     contribs["ASA"] = c_asa
     pontos += c_asa
-
     c_com = 0
     if comorbidade == "Pulmonar": c_com = 16
     elif comorbidade == "Cardiovascular": c_com = 34
     elif comorbidade == "Diabetes": c_com = 38
     contribs["Comorbidades"] = c_com
     pontos += c_com
-
     c_frat = 65 if fratura else 0
     contribs["Fratura"] = c_frat
     pontos += c_frat
@@ -148,64 +136,92 @@ def risco_complicacao_arthro_map(fc, perda_sangue, ureia, procedimento, raca, as
     elif pontos <= 200: prob = 30.0 + ((pontos - 150) / 50) * 40.0 
     elif pontos <= 300: prob = 70.0 + ((pontos - 200) / 100) * 25.0 
     else: prob = 98.0
-
     return min(prob, 99.9), contribs
 
 def risco_mortalidade_nhfs(idade, sexo, hb_baixa, amts_baixo, inst, comorb, malig):
-    """
-    Nottingham Hip Fracture Score (NHFS) - Mortalidade em 30 dias (Stanley et al., 2023) [cite: 639]
-    """
     pontos = 0
     contribs = {}
-
-    # Idade 
     if idade >= 86: p_idade = 4
     elif 66 <= idade <= 85: p_idade = 3
     else: p_idade = 0
-    pontos += p_idade
-    contribs["Idade"] = p_idade
-
-    # Sexo 
+    pontos += p_idade; contribs["Idade"] = p_idade
     p_sexo = 1 if sexo == "Masculino" else 0
-    pontos += p_sexo
-    contribs["Sexo Masculino"] = p_sexo
-
-    # Hemoglobina 
+    pontos += p_sexo; contribs["Sexo Masculino"] = p_sexo
     p_hb = 1 if hb_baixa else 0
-    pontos += p_hb
-    contribs["Hb <= 10 g/dl"] = p_hb
-
-    # Cognição (AMTS) 
+    pontos += p_hb; contribs["Hb <= 10 g/dl"] = p_hb
     p_amts = 1 if amts_baixo else 0
-    pontos += p_amts
-    contribs["AMTS <= 6"] = p_amts
-
-    # Institucionalizado 
+    pontos += p_amts; contribs["AMTS <= 6"] = p_amts
     p_inst = 1 if inst else 0
-    pontos += p_inst
-    contribs["Vive em Instituição"] = p_inst
-
-    # Comorbidades 
+    pontos += p_inst; contribs["Vive em Instituição"] = p_inst
     p_comorb = 1 if comorb else 0
-    pontos += p_comorb
-    contribs[">= 2 Comorbidades"] = p_comorb
-
-    # Malignidade 
+    pontos += p_comorb; contribs[">= 2 Comorbidades"] = p_comorb
     p_malig = 1 if malig else 0
-    pontos += p_malig
-    contribs["Malignidade"] = p_malig
+    pontos += p_malig; contribs["Malignidade"] = p_malig
 
-    # Fórmula 
     prob = 100.0 / (1.0 + math.exp(4.718 - (pontos / 2.0)))
-
     return min(prob, 99.9), contribs
+
+def risco_osteoporose_lancet(idade, sexo, fratura_previa, frax_mof, fratura_em_tratamento):
+    pontos = frax_mof
+    contribs = {"Risco FRAX (MOF) base": frax_mof}
+    if fratura_previa:
+        acrescimo = max(0, 50 - pontos) 
+        pontos += acrescimo
+        contribs["Fratura Prévia (Indicação Direta)"] = acrescimo
+    if fratura_em_tratamento:
+        acrescimo_falha = max(0, 80 - pontos)
+        pontos += acrescimo_falha
+        contribs["Falha Terapêutica"] = acrescimo_falha
+
+    prob = min(pontos, 99.9)
+    recomenda = []
+    if (sexo == "Feminino" and idade >= 65) or (sexo == "Masculino" and idade >= 70):
+        recomenda.append("✔️ Rastreio Densitométrico (DXA) indicado pela idade.")
+    if fratura_previa:
+        recomenda.append("⚠️ Indicação direta para intervenção farmacológica devido a fratura prévia.")
+    if frax_mof >= 35:
+        recomenda.append("💉 Limiar de custo-efetividade atingido para Denosumab (MOF ≥ 35%).")
+    elif frax_mof >= 20:
+        recomenda.append("💉 Limiar de custo-efetividade atingido para Bisfosfonato Intravenoso (MOF ≥ 20%).")
+    elif frax_mof >= 9:
+        recomenda.append("💊 Limiar de custo-efetividade atingido para Bisfosfonato Oral (MOF ≥ 9%).")
+    if fratura_em_tratamento:
+        recomenda.append("🚨 FRATURA DURANTE TRATAMENTO: Avaliar adesão (>70-80%). Descartar causas secundárias. Considerar via parenteral ou anabólicos.")
+
+    return prob, contribs, recomenda
+
+def risco_start_back_tool(q1, q2, q3, q4, q5, q6, q7, q8, q9):
+    """
+    STarT Back Screening Tool - Avalia o risco de prognóstico desfavorável em dor lombar.
+    """
+    pontos_fisicos = sum([1 for q in [q1, q2, q3, q4] if q])
+    pontos_psico = sum([1 for q in [q5, q6, q7, q8] if q])
+    
+    if q9 in ["Muito", "Extremamente"]:
+        pontos_psico += 1
+        
+    total = pontos_fisicos + pontos_psico
+    
+    if total <= 3:
+        prob = 15.0 # Risco Baixo (aprox. probabilidade de cronicidade)
+    elif pontos_psico <= 3:
+        prob = 50.0 # Risco Médio
+    else:
+        prob = 85.0 # Risco Alto
+        
+    contribs = {
+        "Fatores Físicos (0-4)": pontos_fisicos,
+        "Fatores Psicossociais (0-5)": pontos_psico
+    }
+    
+    return prob, contribs
 
 # ==========================================
 # GESTÃO DE DADOS (SQLITE)
 # ==========================================
 def obter_classificacao(prob, tipo):
-    if prob < 5: return ("Baixo Risco", "green")
-    elif prob < 20: return ("Risco Moderado", "orange")
+    if prob < 30: return ("Baixo Risco", "green")
+    elif prob < 60: return ("Risco Moderado", "orange")
     else: return ("Alto Risco", "red")
 
 def salvar_registro(mod, prob, tipo, parametros=""):
@@ -220,7 +236,7 @@ def salvar_registro(mod, prob, tipo, parametros=""):
     c.execute('''
         INSERT INTO avaliacoes (data_hora, prontuario, paciente, mae, avaliacao_clinica, parametros, resultado, classificacao, tipo)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (data, pront, pac, mae, mod, parametros, round(prob, 1), classif, tipo))
+    ''')
     conn.commit()
     conn.close()
     return True
@@ -341,7 +357,7 @@ with st.sidebar:
 if nav == "🏠 Área de Trabalho":
     if not st.session_state.paciente_ativo['prontuario']:
         st.markdown("<h1 class='main-title'>OrtoPreditor <span class='ilizarov-text'>Ilizarov</span></h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; font-size: 1.15rem; opacity: 0.85; max-width: 900px; margin: 15px auto 35px auto;'>Sistema de apoio à decisão cirúrgica em Ortopedia e Traumatologia. Utiliza modelos preditivos baseados na literatura médica para estimar riscos de complicações e mortalidade.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-size: 1.15rem; opacity: 0.85; max-width: 900px; margin: 15px auto 35px auto;'>Sistema de apoio à decisão cirúrgica em Ortopedia e Traumatologia. Utiliza modelos preditivos baseados na literatura médica para estimar riscos de complicações, mortalidade e prognósticos de reabilitação.</p>", unsafe_allow_html=True)
         
         c1, c2 = st.columns(2)
         with c1:
@@ -371,16 +387,16 @@ if nav == "🏠 Área de Trabalho":
                 else:
                     st.warning("Nenhum paciente encontrado.")
             else: 
-                st.info("Sem registros na base de dados no momento.")
+                st.info("Sem registos na base de dados no momento.")
             st.markdown("</div>", unsafe_allow_html=True)
             
         with c2:
-            st.markdown("<div class='input-card'><h3>➕ Cadastrar Novo Paciente</h3>", unsafe_allow_html=True)
+            st.markdown("<div class='input-card'><h3>➕ Registar Novo Paciente</h3>", unsafe_allow_html=True)
             nn = st.text_input("Nome Completo do Paciente:")
             nm = st.text_input("Nome da Mãe:")
             np = st.text_input("Número do Prontuário:")
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("Cadastrar e Iniciar Atendimento", use_container_width=True) and nn and np:
+            if st.button("Registar e Iniciar Atendimento", use_container_width=True) and nn and np:
                 st.session_state.paciente_ativo = {"nome": nn, "mae": nm, "prontuario": str(np)}
                 st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
@@ -389,7 +405,7 @@ if nav == "🏠 Área de Trabalho":
         st.markdown(f"""
         <div class="patient-header">
             <div>
-                <p style="font-size:0.85rem; opacity:0.8; margin-bottom:5px; text-transform:uppercase; letter-spacing: 1px;">Prontuário Eletrônico Ativo</p>
+                <p style="font-size:0.85rem; opacity:0.8; margin-bottom:5px; text-transform:uppercase; letter-spacing: 1px;">Prontuário Eletrónico Ativo</p>
                 <h2 style="margin-top:0; margin-bottom:0;">👤 {st.session_state.paciente_ativo["nome"]}</h2>
             </div>
             <div style="text-align: right;">
@@ -399,97 +415,126 @@ if nav == "🏠 Área de Trabalho":
         </div>
         """, unsafe_allow_html=True)
         
-        tabs = st.tabs(["📊 Painel Visual", "🦴 Artroplastia (Arthro-MAP)", "🩼 Fratura de Fêmur (NHFS)", "📄 Relatório Oficial"])
+        tabs = st.tabs(["📊 Painel Visual", "🦴 Artroplastia (Arthro-MAP)", "🩼 Fratura de Fémur (NHFS)", "🦴 Osteoporose (Lancet)", "🏃 Dor Lombar (STarT Back)", "📄 Relatório Oficial"])
 
         painel_placeholder = tabs[0].empty()
-        relatorio_placeholder = tabs[3].empty()
+        relatorio_placeholder = tabs[5].empty()
 
         with tabs[1]: 
-            st.markdown("<div class='calc-info'><b>O que calcula:</b> O modelo <b>Arthro-MAP</b> estratifica o risco de complicações maiores após artroplastia de quadril e joelho durante a internação.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='calc-info'><b>O que calcula:</b> O modelo <b>Arthro-MAP</b> estratifica o risco de complicações major após artroplastia da anca e joelho durante o internamento.</div>", unsafe_allow_html=True)
             st.markdown("<div class='input-card'><h4>🦴 Arthro-MAP (Risco Pós-Operatório)</h4>", unsafe_allow_html=True)
-            
             c1, c2 = st.columns(2)
             with c1:
-                st.markdown("##### Variáveis Intraoperatórias")
                 fc = st.number_input("Menor Frequência Cardíaca (bpm):", min_value=0, max_value=200, value=60)
                 sangue = st.number_input("Perda Sanguínea Estimada (mL):", min_value=0, max_value=5000, value=200, step=50)
-                
-                st.markdown("##### Variáveis Laboratoriais")
                 ureia = st.number_input("Ureia Sanguínea / BUN pré-operatória (mg/dL):", min_value=0, max_value=150, value=20)
-                
             with c2:
-                st.markdown("##### Variáveis Pré-operatórias Clínicas")
                 proc = st.selectbox("Tipo de Procedimento:", ["Primária", "Parcial", "Revisão"])
                 asa = st.selectbox("Classificação ASA:", ["ASA <= 2 (I, II)", "ASA > 2 (III, IV, V)"])
                 raca = st.selectbox("Raça do Paciente:", ["Não-Branco", "Branco"])
-                
                 comorbidade = st.selectbox("Principal Comorbidade Associada:", ["Nenhuma", "Pulmonar", "Cardiovascular", "Diabetes"])
                 frat = st.toggle("Cirurgia motivada por fratura aguda?")
-            
-            if st.button("Calcular e Salvar Risco Arthro-MAP", key="btn_arthro"):
+            if st.button("Calcular Risco Arthro-MAP", key="btn_arthro"):
                 res, contribs = risco_complicacao_arthro_map(fc, sangue, ureia, proc, raca, asa, comorbidade, frat)
-                params = f"FC: {fc} bpm | Sangue: {sangue}mL | Ureia: {ureia} | {proc} | {asa} | Comorb: {comorbidade} | Fratura: {'Sim' if frat else 'Não'}"
                 st.session_state.arthro_map_res = (res, contribs)
-                salvar_registro("Arthro-MAP (Complicações)", res, "risco", params)
-            
-            if st.session_state.arthro_map_res is not None:
+                salvar_registro("Arthro-MAP (Complicações)", res, "risco", f"FC: {fc} bpm | Sangue: {sangue}mL")
+            if st.session_state.arthro_map_res:
                 res, contribs = st.session_state.arthro_map_res
-                st.success("Cálculo realizado e salvo com sucesso na base de dados!")
-                
                 col_g, col_x = st.columns([1, 1.5])
-                with col_g:
-                    st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
-                with col_x:
-                    st.markdown("##### 🧠 Explicabilidade do Algoritmo (XAI)")
-                    st.markdown(obter_texto_explicativo(contribs))
-                    st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Impacto das Variáveis (Arthro-MAP)"), use_container_width=True)
-                
-            with st.expander("📚 Referência Científica"):
-                st.markdown("""
-                **Wuerz TH, Kent DM, Malchau H, Rubash HE.** A Nomogram to Predict Major Complications After Hip and Knee Arthroplasty. *The Journal of Arthroplasty*. 2014;29:1457-1462.
-                """)
-            st.markdown("</div>", unsafe_allow_html=True)
+                with col_g: st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
+                with col_x: st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Impacto Variáveis (Arthro-MAP)"), use_container_width=True)
 
         with tabs[2]: 
-            st.markdown("<div class='calc-info'><b>O que calcula:</b> O <b>Nottingham Hip Fracture Score (NHFS)</b> prediz a probabilidade de <b>mortalidade em 30 dias</b> em pacientes com fratura do fêmur proximal, utilizando dados de admissão.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='calc-info'><b>O que calcula:</b> O <b>Nottingham Hip Fracture Score (NHFS)</b> prediz a probabilidade de <b>mortalidade em 30 dias</b> em pacientes com fratura do fémur proximal.</div>", unsafe_allow_html=True)
             st.markdown("<div class='input-card'><h4>🩼 NHFS (Risco de Mortalidade)</h4>", unsafe_allow_html=True)
-            
             n1, n2 = st.columns(2)
             with n1:
                 nhfs_idade = st.number_input("Idade do paciente (anos):", min_value=0, max_value=120, value=75)
                 nhfs_sexo = st.selectbox("Sexo biológico:", ["Feminino", "Masculino"])
                 nhfs_hb = st.toggle("Hemoglobina de admissão ≤ 10 g/dl?")
                 nhfs_amts = st.toggle("Escore Cognitivo AMTS ≤ 6 (ou diagnóstico de demência)?")
-                
             with n2:
-                nhfs_inst = st.toggle("O paciente reside em instituição de longa permanência (asilo)?")
-                nhfs_comorb = st.toggle("O paciente possui 2 ou mais comorbidades sistêmicas?")
-                nhfs_malig = st.toggle("O paciente possui diagnóstico de malignidade (câncer)?")
-            
-            if st.button("Calcular e Salvar Risco de Mortalidade (NHFS)", key="btn_nhfs"):
+                nhfs_inst = st.toggle("O paciente reside em instituição de longa permanência (lar)?")
+                nhfs_comorb = st.toggle("O paciente possui 2 ou mais comorbidades sistémicas?")
+                nhfs_malig = st.toggle("O paciente possui diagnóstico de malignidade (cancro)?")
+            if st.button("Calcular Risco de Mortalidade (NHFS)", key="btn_nhfs"):
                 res, contribs = risco_mortalidade_nhfs(nhfs_idade, nhfs_sexo, nhfs_hb, nhfs_amts, nhfs_inst, nhfs_comorb, nhfs_malig)
-                params = f"Idade: {nhfs_idade} | Sexo: {nhfs_sexo} | Hb≤10: {'Sim' if nhfs_hb else 'Não'} | AMTS≤6: {'Sim' if nhfs_amts else 'Não'} | Inst: {'Sim' if nhfs_inst else 'Não'} | ≥2 Comorb: {'Sim' if nhfs_comorb else 'Não'} | Malig: {'Sim' if nhfs_malig else 'Não'}"
                 st.session_state.nhfs_res = (res, contribs)
-                salvar_registro("NHFS (Mortalidade 30d)", res, "risco", params)
-            
-            if st.session_state.nhfs_res is not None:
+                salvar_registro("NHFS (Mortalidade 30d)", res, "risco", f"Idade: {nhfs_idade} | Hb≤10: {nhfs_hb}")
+            if st.session_state.nhfs_res:
                 res, contribs = st.session_state.nhfs_res
-                st.success("Cálculo realizado e salvo com sucesso na base de dados!")
+                col_g, col_x = st.columns([1, 1.5])
+                with col_g: st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
+                with col_x: st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Impacto das Variáveis (NHFS)"), use_container_width=True)
+
+        with tabs[3]:
+            st.markdown("<div class='calc-info'><b>O que avalia:</b> Diretrizes de avaliação de risco de osteoporose e limiares terapêuticos.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='input-card'><h4>🦴 Estratificação FRAX & Decisão</h4>", unsafe_allow_html=True)
+            o1, o2 = st.columns(2)
+            with o1:
+                osteo_idade = st.number_input("Idade do paciente:", min_value=0, max_value=120, value=70)
+                osteo_sexo = st.selectbox("Sexo do paciente:", ["Feminino", "Masculino"], key="osteo_s")
+                osteo_frax = st.number_input("Risco FRAX a 10 anos para Fratura Major (MOF %):", min_value=0.0, max_value=100.0, value=5.0)
+            with o2:
+                osteo_prev = st.toggle("Possui histórico de fratura por fragilidade?")
+                osteo_falha = st.toggle("Sofreu nova fratura enquanto recebia tratamento?")
+            if st.button("Avaliar Decisão Clínica", key="btn_osteo"):
+                res, contribs, recomenda = risco_osteoporose_lancet(osteo_idade, osteo_sexo, osteo_prev, osteo_frax, osteo_falha)
+                st.session_state.osteo_res = (res, contribs, recomenda)
+                salvar_registro("Risco Osteoporose", res, "risco", f"FRAX MOF: {osteo_frax}%")
+            if st.session_state.osteo_res:
+                res, contribs, recomenda = st.session_state.osteo_res
+                col_g, col_x = st.columns([1, 1.5])
+                with col_g: st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
+                with col_x:
+                    st.markdown("##### 🩺 Recomendações Clínicas")
+                    for rec in recomenda: st.info(rec)
+
+        with tabs[4]:
+            st.markdown("<div class='calc-info'><b>O que avalia:</b> O <b>STarT Back Screening Tool</b> é um dos 6 modelos prognósticos validados e considerados clinicamente valiosos para reabilitação musculoesquelética. Identifica preditores físicos e psicossociais para dor lombar persistente.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='input-card'><h4>🏃 STarT Back (Risco na Dor Lombar)</h4>", unsafe_allow_html=True)
+            
+            sb1, sb2 = st.columns(2)
+            with sb1:
+                st.markdown("##### Fatores Físicos (Últimas 2 semanas)")
+                sb_q1 = st.toggle("1. A minha dor nas costas espalhou-se para a(s) perna(s).")
+                sb_q2 = st.toggle("2. Tive dor no ombro ou no pescoço.")
+                sb_q3 = st.toggle("3. Só caminhei curtas distâncias por causa da minha dor nas costas.")
+                sb_q4 = st.toggle("4. Vesti-me mais lentamente que o normal por causa da dor.")
+            with sb2:
+                st.markdown("##### Fatores Psicossociais (Últimas 2 semanas)")
+                sb_q5 = st.toggle("5. Não é seguro para uma pessoa com o meu problema ser fisicamente ativa.")
+                sb_q6 = st.toggle("6. Pensamentos preocupantes têm passado pela minha cabeça muitas vezes.")
+                sb_q7 = st.toggle("7. Sinto que a minha dor nas costas é terrível e que nunca vai melhorar.")
+                sb_q8 = st.toggle("8. Em geral, não tenho aproveitado todas as coisas que costumava aproveitar.")
+            
+            sb_q9 = st.selectbox("9. No geral, quão incómoda foi a sua dor nas costas nas últimas 2 semanas?", ["Nada", "Ligeiramente", "Moderadamente", "Muito", "Extremamente"])
+            
+            if st.button("Calcular e Salvar Risco de Cronicidade (STarT Back)", key="btn_sb"):
+                res, contribs = risco_start_back_tool(sb_q1, sb_q2, sb_q3, sb_q4, sb_q5, sb_q6, sb_q7, sb_q8, sb_q9)
+                params = f"Físicos: {contribs['Fatores Físicos (0-4)']} pts | Psico: {contribs['Fatores Psicossociais (0-5)']} pts | Total: {sum(contribs.values())} pts"
+                st.session_state.start_back_res = (res, contribs)
+                salvar_registro("STarT Back (Dor Lombar)", res, "risco", params)
+            
+            if st.session_state.start_back_res is not None:
+                res, contribs = st.session_state.start_back_res
+                st.success("Cálculo de Reabilitação salvo com sucesso!")
                 
                 col_g, col_x = st.columns([1, 1.5])
                 with col_g:
                     st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
                 with col_x:
-                    st.markdown("##### 🧠 Explicabilidade do Algoritmo (XAI)")
-                    st.markdown(obter_texto_explicativo(contribs))
-                    st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Impacto das Variáveis (NHFS)"), use_container_width=True)
-                
-            with st.expander("📚 Referência Científica"):
-                st.markdown("""
-                **Stanley C, Lennon D, Moran C, Vasireddy A, Rowan F.** Risk scoring models for patients with proximal femur fractures: Qualitative systematic review assessing 30-day mortality and ease of use. *Injury*. 2023;54:111017. [cite: 338-339]  
-                **DOI:** [10.1016/j.injury.2023.111017](https://doi.org/10.1016/j.injury.2023.111017)
-                """)
-            st.markdown("</div>", unsafe_allow_html=True)
+                    st.markdown("##### 🧠 Classificação de Reabilitação (Subgrupos)")
+                    pontos_totais = sum(contribs.values())
+                    pontos_psico = contribs['Fatores Psicossociais (0-5)']
+                    if pontos_totais <= 3:
+                        st.info("🟢 **Baixo Risco:** Indicação de tratamento em cuidados primários, tranquilização e forte incentivo à manutenção das atividades.")
+                    elif pontos_psico <= 3:
+                        st.warning("🟡 **Risco Médio:** Indicação de fisioterapia conservadora (focada na reabilitação dos sintomas físicos e retorno funcional).")
+                    else:
+                        st.error("🔴 **Alto Risco:** Indicação de tratamento combinado (fisioterapia associada a abordagem psicossocial/cognitivo-comportamental para reduzir comportamentos de medo e evitação).")
+                    
+                    st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Composição do Score STarT Back"), use_container_width=True)
 
         # =======================================================
         # PREENCHIMENTO DOS PLACEHOLDERS (PAINEL E RELATÓRIO)
@@ -517,7 +562,7 @@ if nav == "🏠 Área de Trabalho":
                         </div><br>
                         """, unsafe_allow_html=True)
             else: 
-                st.info("Nenhum cálculo salvo ainda. Realize a avaliação nas abas clínicas.")
+                st.info("Nenhum cálculo salvo ainda. Realize as avaliações nas abas clínicas.")
                     
         with relatorio_placeholder.container():
             st.markdown("### 🖨️ Relatório Oficial (Formato A4)")
@@ -557,7 +602,7 @@ if nav == "🏠 Área de Trabalho":
             </head>
             <body>
                 <div style="width: 210mm; max-width: 100%;">
-                    <div class="no-print"><button class="print-button" onclick="window.print()">🖨️ CLIQUE AQUI PARA IMPRIMIR OU SALVAR EM PDF</button></div>
+                    <div class="no-print"><button class="print-button" onclick="window.print()">🖨️ CLIQUE AQUI PARA IMPRIMIR OU GUARDAR EM PDF</button></div>
                     <div class="a4-page">
                         <div class="header">
                             <h1>Hospital Universitário Getúlio Vargas</h1>
@@ -565,7 +610,7 @@ if nav == "🏠 Área de Trabalho":
                         </div>
                         <div class="patient-box">
                             <p><b>Paciente:</b> {st.session_state.paciente_ativo['nome']}</p>
-                            <p><b>Registro / Prontuário:</b> {st.session_state.paciente_ativo['prontuario']}</p>
+                            <p><b>Registo / Prontuário:</b> {st.session_state.paciente_ativo['prontuario']}</p>
                             <p><b>Nome da Mãe:</b> {st.session_state.paciente_ativo['mae']}</p>
                             <p><b>Data da Emissão:</b> {datetime.datetime.now().strftime("%d/%m/%Y às %H:%M")}</p>
                         </div>
@@ -603,6 +648,6 @@ elif nav == "📊 Gestão & Analytics":
         st.subheader("🗃️ Base de Dados Completa")
         st.dataframe(df_g.sort_values(by="Data/Hora", ascending=False), use_container_width=True, hide_index=True)
     else: 
-        st.info("Nenhum dado registrado na base de dados.")
+        st.info("Nenhum dado registado na base de dados.")
 
 st.markdown("<div class='watermark'>Made By Vinícius Bacelar Ferreira</div>", unsafe_allow_html=True)
