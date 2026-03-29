@@ -28,7 +28,10 @@ if 'autenticado' not in st.session_state:
 if 'paciente_ativo' not in st.session_state:
     st.session_state.paciente_ativo = {"nome": "", "mae": "", "prontuario": ""}
 
-# Lista atualizada com o novo módulo Rotator Cuff (RoHI)
+# Variável de controlo para o Dashboard Anatómico
+if 'modulo_selecionado' not in st.session_state:
+    st.session_state.modulo_selecionado = None
+
 lista_modulos = ['arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 'spinesage_res', 'rotator_cuff_res']
 for mod in lista_modulos:
     if mod not in st.session_state:
@@ -88,6 +91,7 @@ with st.sidebar:
         
         if st.button("❌ Fechar Prontuário", type="primary", use_container_width=True):
             st.session_state.paciente_ativo = {"nome": "", "mae": "", "prontuario": ""}
+            st.session_state.modulo_selecionado = None
             for mod in lista_modulos:
                 st.session_state[mod] = None
             st.rerun()
@@ -96,6 +100,7 @@ with st.sidebar:
     if st.button("🚪 Sair do Sistema", use_container_width=True):
         st.session_state.autenticado = False
         st.session_state.paciente_ativo = {"nome": "", "mae": "", "prontuario": ""}
+        st.session_state.modulo_selecionado = None
         st.rerun()
         
     st.markdown("<br><br><p style='text-align: center; font-size: 0.75rem; font-weight: bold; opacity: 0.5;'>Made By Vinícius Bacelar Ferreira</p>", unsafe_allow_html=True)
@@ -131,6 +136,7 @@ if nav == "🏠 Área de Trabalho":
                         id_p = sel.split(" - ")[0]
                         dados = df_b[df_b['Prontuário'] == id_p].iloc[0]
                         st.session_state.paciente_ativo = {"prontuario": id_p, "nome": dados['Paciente'], "mae": dados['Mãe']}
+                        st.session_state.modulo_selecionado = None
                         st.rerun()
                 else:
                     st.warning("Nenhum paciente encontrado.")
@@ -146,6 +152,7 @@ if nav == "🏠 Área de Trabalho":
             st.markdown("<br>", unsafe_allow_html=True)
             if st.button("Registar e Iniciar Atendimento", use_container_width=True) and nn and np:
                 st.session_state.paciente_ativo = {"nome": nn, "mae": nm, "prontuario": str(np)}
+                st.session_state.modulo_selecionado = None
                 st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
             
@@ -163,34 +170,69 @@ if nav == "🏠 Área de Trabalho":
         </div>
         """, unsafe_allow_html=True)
         
-        # Abas atualizadas com o novo módulo do Manguito Rotador
-        tabs = st.tabs([
-            "📊 Painel Visual", 
-            "🦴 Artroplastia (Arthro-MAP)", 
-            "🩼 Fratura de Fémur (NHFS)", 
-            "🦴 Osteoporose (Lancet)", 
-            "🏃 Dor Lombar (STarT Back)", 
-            "⚕️ Coluna (SpineSage)", 
-            "💪 Manguito Rotador (RoHI)", 
-            "📄 Relatório Oficial"
-        ])
-
-        painel_placeholder = tabs[0].empty()
-        relatorio_placeholder = tabs[7].empty() # Atualizado para índice 7
-
-        # Renderização modular limpa
-        with tabs[1]: arthro_map.renderizar_ui()
-        with tabs[2]: nhfs.renderizar_ui()
-        with tabs[3]: osteoporose.renderizar_ui()
-        with tabs[4]: start_back.renderizar_ui()
-        with tabs[5]: spine_sage.renderizar_ui()
-        with tabs[6]: rotator_cuff.renderizar_ui() # NOVO MÓDULO
-
         # =======================================================
-        # PREENCHIMENTO DOS PLACEHOLDERS (PAINEL E RELATÓRIO)
+        # ROTEADOR DO DASHBOARD ANATÓMICO
         # =======================================================
-        with painel_placeholder.container():
-            st.subheader("📊 Resultados Consolidados e Arquivados")
+        if st.session_state.modulo_selecionado is None:
+            st.markdown("### 🗺️ Mapa Anatómico & Avaliação Sistémica")
+            st.write("Selecione a região anatómica ou o sistema metabólico que deseja avaliar para este paciente:")
+            st.markdown("<br>", unsafe_allow_html=True)
+            
+            col_sys, espaco, col_anat = st.columns([1, 0.2, 2.5])
+            
+            # --- MENU SISTÉMICO (ESQUERDA) ---
+            with col_sys:
+                st.markdown("<div class='sidebar-section-title' style='text-align:left; margin-top:0;'>Metabolismo & Relatórios</div>", unsafe_allow_html=True)
+                if st.button("🩸 Osteoporose\n(Diretrizes Lancet)", use_container_width=True):
+                    st.session_state.modulo_selecionado = 'osteoporose'
+                    st.rerun()
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("📄 Relatório Oficial em A4", type="primary", use_container_width=True):
+                    st.session_state.modulo_selecionado = 'relatorio'
+                    st.rerun()
+
+            # --- MAPA ANATÓMICO (DIREITA) ---
+            with col_anat:
+                st.markdown("<div class='sidebar-section-title' style='text-align:center; margin-top:0;'>Esqueleto & Articulações</div>", unsafe_allow_html=True)
+                
+                # Linha 1: Cervical e Ombros
+                c1, c2, c3 = st.columns([1, 1.2, 1])
+                with c1:
+                    if st.button("💪 Ombro (Esq.)\n(RoHI Manguito)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'rotator_cuff'
+                        st.rerun()
+                with c2:
+                    if st.button("🧠 Coluna Cervical/Torácica\n(SpineSage)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'spine_sage'
+                        st.rerun()
+                with c3:
+                    if st.button("💪 Ombro (Dir.)\n(RoHI Manguito)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'rotator_cuff'
+                        st.rerun()
+                
+                # Linha 2: Lombar
+                c4, c5, c6 = st.columns([1, 1.2, 1])
+                with c5:
+                    if st.button("🦴 Coluna Lombar\n(STarT Back)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'start_back'
+                        st.rerun()
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Linha 3: Membros Inferiores
+                c7, c8 = st.columns([1, 1])
+                with c7:
+                    if st.button("🩼 Fratura de Fémur\n(Mortalidade NHFS)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'nhfs'
+                        st.rerun()
+                with c8:
+                    if st.button("🦵 Artroplastia Anca/Joelho\n(Risco Arthro-MAP)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'arthro_map'
+                        st.rerun()
+
+            # --- PAINEL DE RESULTADOS CONSOLIDADOS NA TELA INICIAL ---
+            st.markdown("<hr style='opacity: 0.2; margin: 40px 0;'>", unsafe_allow_html=True)
+            st.subheader("📊 Resumo Clínico do Paciente")
             df_p = obter_df_paciente(st.session_state.paciente_ativo['prontuario'])
             if not df_p.empty:
                 df_l = df_p.sort_values(by="Data/Hora").groupby("Avaliação Clínica").last().reset_index()
@@ -212,72 +254,98 @@ if nav == "🏠 Área de Trabalho":
                         </div><br>
                         """, unsafe_allow_html=True)
             else: 
-                st.info("Nenhum cálculo salvo ainda. Realize as avaliações nas abas clínicas.")
-                    
-        with relatorio_placeholder.container():
-            st.markdown("### 🖨️ Relatório Oficial (Formato A4)")
-            linhas_html = ""
-            df_rel_pac = obter_df_paciente(st.session_state.paciente_ativo['prontuario'])
+                st.info("Nenhuma avaliação registada no prontuário deste paciente. Selecione um módulo no mapa acima para iniciar.")
+
+        # =======================================================
+        # RENDERIZAÇÃO ISOLADA DO MÓDULO SELECIONADO
+        # =======================================================
+        else:
+            # Botão de retorno global
+            if st.button("⬅️ Voltar ao Mapa Anatómico"):
+                st.session_state.modulo_selecionado = None
+                st.rerun()
+                
+            st.markdown("<hr style='opacity: 0.1; margin: 10px 0 20px 0;'>", unsafe_allow_html=True)
             
-            if not df_rel_pac.empty:
-                df_latest_rel = df_rel_pac.sort_values(by="Data/Hora").groupby("Avaliação Clínica").last().reset_index()
-                for _, r in df_latest_rel.iterrows():
-                    param_str = r.get("Parâmetros Inseridos", "-")
-                    linhas_html += f"""
-                    <tr>
-                        <td style="font-weight: bold; color: #1b5e20;">{r['Avaliação Clínica']}</td>
-                        <td style="font-size: 12px; color: #555;">{param_str}</td>
-                        <td style="font-weight: bold; text-align: center; color: #333;">{r['Resultado (%)']}%</td>
-                        <td style="text-align: center; color: #333;">{r['Classificação']}</td>
-                    </tr>
-                    """
-            
-            html_relatorio = f"""
-            <html>
-            <head>
-            <style>
-                body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: transparent; margin: 0; padding: 20px; display: flex; justify-content: center; }}
-                .print-button {{ background: #1b5e20; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; }}
-                .a4-page {{ width: 210mm; min-height: 297mm; background: white; padding: 20mm; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; color: black; }}
-                .header {{ border-bottom: 3px solid #1b5e20; padding-bottom: 15px; margin-bottom: 25px; text-align: center; }}
-                .header h1 {{ margin: 0; color: #1b5e20; font-size: 26px; text-transform: uppercase; }}
-                .header h3 {{ margin: 5px 0 0 0; color: #777; font-size: 14px; }}
-                .patient-box {{ background: #f8f9fa; border-left: 4px solid #1b5e20; padding: 15px 20px; margin-bottom: 30px; }}
-                table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
-                th, td {{ border-bottom: 1px solid #eee; padding: 14px 12px; font-size: 13px; }}
-                th {{ background-color: #1b5e20; color: white; text-align: center; text-transform: uppercase; font-size: 12px; }}
-                .footer {{ position: absolute; bottom: 20mm; left: 20mm; right: 20mm; border-top: 1px solid #ddd; padding-top: 15px; text-align: center; font-size: 11px; color: #777; }}
-                @media print {{ body {{ background: white; padding: 0; display: block; }} .no-print {{ display: none !important; }} .a4-page {{ width: 100%; height: auto; padding: 0; box-shadow: none; border: none; margin: 0; }} }}
-            </style>
-            </head>
-            <body>
-                <div style="width: 210mm; max-width: 100%;">
-                    <div class="no-print"><button class="print-button" onclick="window.print()">🖨️ CLIQUE AQUI PARA IMPRIMIR OU GUARDAR EM PDF</button></div>
-                    <div class="a4-page">
-                        <div class="header">
-                            <h1>Hospital Universitário Getúlio Vargas</h1>
-                            <h3>OrtoPreditor Ilizarov - Relatório de Avaliação Preditiva</h3>
-                        </div>
-                        <div class="patient-box">
-                            <p><b>Paciente:</b> {st.session_state.paciente_ativo['nome']}</p>
-                            <p><b>Registo / Prontuário:</b> {st.session_state.paciente_ativo['prontuario']}</p>
-                            <p><b>Nome da Mãe:</b> {st.session_state.paciente_ativo['mae']}</p>
-                            <p><b>Data da Emissão:</b> {datetime.datetime.now().strftime("%d/%m/%Y às %H:%M")}</p>
-                        </div>
-                        <table>
-                            <tr><th style="width: 25%;">Módulo Clínico</th><th style="width: 45%;">Parâmetros</th><th style="width: 12%;">Resultado</th><th style="width: 18%;">Classificação</th></tr>
-                            {linhas_html if linhas_html else '<tr><td colspan="4" style="text-align:center; padding: 20px;">Nenhuma avaliação realizada.</td></tr>'}
-                        </table>
-                        <div class="footer">
-                            <p>OrtoPreditor Ilizarov • HUGV - UFAM</p>
-                            <p>Made By Vinícius Bacelar Ferreira</p>
+            # Roteamento para a interface correta
+            if st.session_state.modulo_selecionado == 'arthro_map':
+                arthro_map.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'nhfs':
+                nhfs.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'osteoporose':
+                osteoporose.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'start_back':
+                start_back.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'spine_sage':
+                spine_sage.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'rotator_cuff':
+                rotator_cuff.renderizar_ui()
+                
+            # Módulo de Relatório Especial
+            elif st.session_state.modulo_selecionado == 'relatorio':
+                st.markdown("### 🖨️ Relatório Oficial (Formato A4)")
+                linhas_html = ""
+                df_rel_pac = obter_df_paciente(st.session_state.paciente_ativo['prontuario'])
+                
+                if not df_rel_pac.empty:
+                    df_latest_rel = df_rel_pac.sort_values(by="Data/Hora").groupby("Avaliação Clínica").last().reset_index()
+                    for _, r in df_latest_rel.iterrows():
+                        param_str = r.get("Parâmetros Inseridos", "-")
+                        linhas_html += f"""
+                        <tr>
+                            <td style="font-weight: bold; color: #1b5e20;">{r['Avaliação Clínica']}</td>
+                            <td style="font-size: 12px; color: #555;">{param_str}</td>
+                            <td style="font-weight: bold; text-align: center; color: #333;">{r['Resultado (%)']}%</td>
+                            <td style="text-align: center; color: #333;">{r['Classificação']}</td>
+                        </tr>
+                        """
+                
+                html_relatorio = f"""
+                <html>
+                <head>
+                <style>
+                    body {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: transparent; margin: 0; padding: 20px; display: flex; justify-content: center; }}
+                    .print-button {{ background: #1b5e20; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; }}
+                    .a4-page {{ width: 210mm; min-height: 297mm; background: white; padding: 20mm; box-sizing: border-box; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; color: black; }}
+                    .header {{ border-bottom: 3px solid #1b5e20; padding-bottom: 15px; margin-bottom: 25px; text-align: center; }}
+                    .header h1 {{ margin: 0; color: #1b5e20; font-size: 26px; text-transform: uppercase; }}
+                    .header h3 {{ margin: 5px 0 0 0; color: #777; font-size: 14px; }}
+                    .patient-box {{ background: #f8f9fa; border-left: 4px solid #1b5e20; padding: 15px 20px; margin-bottom: 30px; }}
+                    table {{ width: 100%; border-collapse: collapse; margin-bottom: 30px; }}
+                    th, td {{ border-bottom: 1px solid #eee; padding: 14px 12px; font-size: 13px; }}
+                    th {{ background-color: #1b5e20; color: white; text-align: center; text-transform: uppercase; font-size: 12px; }}
+                    .footer {{ position: absolute; bottom: 20mm; left: 20mm; right: 20mm; border-top: 1px solid #ddd; padding-top: 15px; text-align: center; font-size: 11px; color: #777; }}
+                    @media print {{ body {{ background: white; padding: 0; display: block; }} .no-print {{ display: none !important; }} .a4-page {{ width: 100%; height: auto; padding: 0; box-shadow: none; border: none; margin: 0; }} }}
+                </style>
+                </head>
+                <body>
+                    <div style="width: 210mm; max-width: 100%;">
+                        <div class="no-print"><button class="print-button" onclick="window.print()">🖨️ CLIQUE AQUI PARA IMPRIMIR OU GUARDAR EM PDF</button></div>
+                        <div class="a4-page">
+                            <div class="header">
+                                <h1>Hospital Universitário Getúlio Vargas</h1>
+                                <h3>OrtoPreditor Ilizarov - Relatório de Avaliação Preditiva</h3>
+                            </div>
+                            <div class="patient-box">
+                                <p><b>Paciente:</b> {st.session_state.paciente_ativo['nome']}</p>
+                                <p><b>Registo / Prontuário:</b> {st.session_state.paciente_ativo['prontuario']}</p>
+                                <p><b>Nome da Mãe:</b> {st.session_state.paciente_ativo['mae']}</p>
+                                <p><b>Data da Emissão:</b> {datetime.datetime.now().strftime("%d/%m/%Y às %H:%M")}</p>
+                            </div>
+                            <table>
+                                <tr><th style="width: 25%;">Módulo Clínico</th><th style="width: 45%;">Parâmetros</th><th style="width: 12%;">Resultado</th><th style="width: 18%;">Classificação</th></tr>
+                                {linhas_html if linhas_html else '<tr><td colspan="4" style="text-align:center; padding: 20px;">Nenhuma avaliação realizada.</td></tr>'}
+                            </table>
+                            <div class="footer">
+                                <p>OrtoPreditor Ilizarov • HUGV - UFAM</p>
+                                <p>Made By Vinícius Bacelar Ferreira</p>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </body>
-            </html>
-            """
-            components.html(html_relatorio, height=1200, scrolling=True)
+                </body>
+                </html>
+                """
+                components.html(html_relatorio, height=1200, scrolling=True)
 
 # ==========================================
 # GESTÃO & ANALYTICS (DASHBOARD)
