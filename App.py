@@ -18,6 +18,7 @@ import modulos.rotator_cuff as rotator_cuff
 import modulos.osteosarcoma as osteosarcoma
 import modulos.foot_ankle_id as foot_ankle_id
 import modulos.distal_radius as distal_radius
+import modulos.distal_radius_instability as distal_radius_instability
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -62,7 +63,7 @@ if 'modulo_selecionado' not in st.session_state:
 lista_modulos = [
     'arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 
     'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res', 
-    'foot_ankle_id_res', 'distal_radius_res'
+    'foot_ankle_id_res', 'distal_radius_res', 'distal_radius_instability_res'
 ]
 for mod in lista_modulos:
     if mod not in st.session_state:
@@ -241,7 +242,10 @@ if nav == "🏠 Área de Trabalho":
                 with st.expander("🔸 Antebraço"):
                     st.info("⏳ Módulos para o antebraço em desenvolvimento...")
                 with st.expander("🔸 Mão e Punho", expanded=True):
-                    if st.button("✋ Risco Funcional na Fratura de Rádio Distal", use_container_width=True):
+                    if st.button("✋ Risco de Instabilidade (Pós-Redução Rádio Distal)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'distal_radius_instability'
+                        st.rerun()
+                    if st.button("✋ Risco Funcional (Fratura de Rádio Distal)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'distal_radius'
                         st.rerun()
 
@@ -345,6 +349,8 @@ if nav == "🏠 Área de Trabalho":
                 foot_ankle_id.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'distal_radius':
                 distal_radius.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'distal_radius_instability':
+                distal_radius_instability.renderizar_ui()
                 
             # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
