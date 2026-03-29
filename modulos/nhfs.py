@@ -35,9 +35,9 @@ def calcular_risco(idade, sexo, hb_baixa, amts_baixo, inst, comorb, malig):
 
 def renderizar_ui():
     st.markdown("<div class='calc-info'><b>O que calcula:</b> O <b>Nottingham Hip Fracture Score (NHFS)</b> prediz a probabilidade de <b>mortalidade em 30 dias</b> em pacientes com fratura do fêmur proximal.</div>", unsafe_allow_html=True)
-    # (...)
-        nhfs_malig = st.toggle("O paciente possui diagnóstico de malignidade (câncer)?")
-
+    st.markdown("<div class='input-card'><h4>🩼 NHFS (Risco de Mortalidade)</h4>", unsafe_allow_html=True)
+    
+    n1, n2 = st.columns(2)
     with n1:
         nhfs_idade = st.number_input("Idade do paciente (anos):", min_value=0, max_value=120, value=75)
         nhfs_sexo = st.selectbox("Sexo biológico:", ["Feminino", "Masculino"])
@@ -45,15 +45,15 @@ def renderizar_ui():
         nhfs_amts = st.toggle("Escore Cognitivo AMTS ≤ 6 (ou diagnóstico de demência)?")
     with n2:
         nhfs_inst = st.toggle("O paciente reside em instituição de longa permanência (lar)?")
-        nhfs_comorb = st.toggle("O paciente possui 2 ou mais comorbidades sistémicas?")
-        nhfs_malig = st.toggle("O paciente possui diagnóstico de malignidade (cancro)?")
+        nhfs_comorb = st.toggle("O paciente possui 2 ou mais comorbidades sistêmicas?")
+        nhfs_malig = st.toggle("O paciente possui diagnóstico de malignidade (câncer)?")
         
     if st.button("Calcular Risco de Mortalidade (NHFS)", key="btn_nhfs"):
         res, contribs = calcular_risco(nhfs_idade, nhfs_sexo, nhfs_hb, nhfs_amts, nhfs_inst, nhfs_comorb, nhfs_malig)
         st.session_state.nhfs_res = (res, contribs)
         salvar_registro("NHFS (Mortalidade 30d)", res, "risco", f"Idade: {nhfs_idade} | Hb≤10: {nhfs_hb}")
         
-    if st.session_state.nhfs_res:
+    if st.session_state.get('nhfs_res'):
         res, contribs = st.session_state.nhfs_res
         col_g, col_x = st.columns([1, 1.5])
         with col_g: st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
