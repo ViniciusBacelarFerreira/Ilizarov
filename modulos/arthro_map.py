@@ -55,7 +55,7 @@ def calcular_risco(fc, perda_sangue, ureia, procedimento, raca, asa, comorbidade
 def renderizar_ui():
     st.markdown("<div class='calc-info'><b>O que calcula:</b> O modelo <b>Arthro-MAP</b> estratifica o risco de complicações maiores após artroplastia de quadril e joelho durante a internação.</div>", unsafe_allow_html=True)
     st.markdown("<div class='input-card'><h4>🦵 Arthro-MAP (Risco Pós-Operatório)</h4>", unsafe_allow_html=True)
-
+    
     c1, c2 = st.columns(2)
     with c1:
         fc = st.number_input("Menor Frequência Cardíaca (bpm):", min_value=0, max_value=200, value=60)
@@ -73,7 +73,7 @@ def renderizar_ui():
         st.session_state.arthro_map_res = (res, contribs)
         salvar_registro("Arthro-MAP (Complicações)", res, "complicacao", f"FC: {fc} bpm | Sangue: {sangue}mL")
         
-    if st.session_state.arthro_map_res:
+    if st.session_state.get('arthro_map_res'):
         res, contribs = st.session_state.arthro_map_res
         col_g, col_x = st.columns([1, 1.5])
         with col_g: st.plotly_chart(gerar_grafico_velocimetro(res, "complicacao"), use_container_width=True)
