@@ -63,5 +63,8 @@ def renderizar_ui():
             st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Impacto das Variáveis (NHFS)"), use_container_width=True)
             
     with st.expander("📚 Referência Científica"):
-        st.markdown("**Stanley C, Lennon D, Moran C, Vasireddy A, Rowan F.** Risk scoring models for patients with proximal femur fractures: Qualitative systematic review assessing 30-day mortality and ease of use. *Injury*. 2023;54:111017.")
+        st.markdown("""
+        **Stanley C, Lennon D, Moran C, Vasireddy A, Rowan F.** Risk scoring models for patients with proximal femur fractures: Qualitative systematic review assessing 30-day mortality and ease of use. *Injury*. 2023;54:111017.  
+        **DOI:** [10.1016/j.injury.2023.111017](https://doi.org/10.1016/j.injury.2023.111017)
+        """)
     st.markdown("</div>", unsafe_allow_html=True)
