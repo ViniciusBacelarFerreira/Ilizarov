@@ -3,7 +3,6 @@ from utils import gerar_grafico_velocimetro, gerar_grafico_waterfall, obter_text
 from database import salvar_registro
 
 def calcular_risco_bonsignore(tabagismo, diabetes, tempo_cirurgia):
-    # Cálculo baseado no Risk Severity Score de Bonsignore-Opp et al. (2024)
     pontos = 0
     contribs = {}
     if tabagismo:
@@ -21,7 +20,6 @@ def calcular_risco_bonsignore(tabagismo, diabetes, tempo_cirurgia):
     return prob, contribs
 
 def calcular_risco_deng(idade, diabetes, fratura_exposta, albumina_baixa, tempo_cirurgia):
-    # Nomograma proxy para infecção incisional em fratura de tornozelo (Deng et al., 2023)
     pontos = 0
     contribs = {}
 
