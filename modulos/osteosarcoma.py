@@ -3,52 +3,42 @@ from utils import gerar_grafico_velocimetro, gerar_grafico_waterfall, obter_text
 from database import salvar_registro
 
 def calcular_risco(idade, grau, t_stage, m_stage, cirurgia, quimioterapia, histologia):
-    # Cálculo proxy estruturado com base no nomograma de Yu et al. (2023)
     pontos = 0.0
     contribs = {}
     
-    # Idade (Maior risco em idades mais avançadas)
     c_idade = 0
     if idade >= 60: c_idade = 15
     elif idade >= 40: c_idade = 8
     contribs["Idade Avançada"] = c_idade
     pontos += c_idade
     
-    # Grau do Tumor
     c_grau = 15 if grau == "Alto Grau (III-IV)" else 0
     contribs["Alto Grau Histológico"] = c_grau
     pontos += c_grau
     
-    # Estágio T (Tamanho/Extensão)
     c_t = 0
     if t_stage == "T3 (Tumores descontínuos no osso primário)": c_t = 20
     elif t_stage == "T2 (> 8 cm na maior dimensão)": c_t = 10
     contribs["Estágio T Avançado"] = c_t
     pontos += c_t
     
-    # Estágio M (Metástase) - Principal fator adverso
     c_m = 35 if m_stage == "M1 (Metástase à distância)" else 0
     contribs["Presença de Metástase (M1)"] = c_m
     pontos += c_m
     
-    # Tratamento Cirúrgico (A ausência aumenta o risco drasticamente)
     c_cirurgia = 30 if cirurgia == "Não" else 0
     contribs["Ausência de Cirurgia"] = c_cirurgia
     pontos += c_cirurgia
     
-    # Quimioterapia
     c_quimio = 20 if quimioterapia == "Não" else 0
     contribs["Ausência de Quimioterapia"] = c_quimio
     pontos += c_quimio
     
-    # Histologia
     c_hist = 5 if histologia not in ["Osteoblástico", "Condroblástico"] else 0
     contribs["Subtipo Histológico Desfavorável"] = c_hist
     pontos += c_hist
     
-    # Normalização proxy para Probabilidade de Mortalidade Câncer-Específica em 5 anos
     prob = min(99.9, (pontos / 140.0) * 100)
-    
     return round(prob, 1), contribs
 
 def renderizar_ui():
@@ -88,7 +78,6 @@ def renderizar_ui():
         res, contribs = st.session_state.osteosarcoma_res
         col_g, col_x = st.columns([1, 1.5])
         with col_g: 
-            # Reutiliza o velocímetro padrão. Risco > 60% será vermelho.
             st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
         with col_x: 
             st.markdown("##### 🧠 Explicabilidade do Risco (XAI)")
