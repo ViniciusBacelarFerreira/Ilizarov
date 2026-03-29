@@ -62,5 +62,8 @@ def renderizar_ui():
             st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Composição do Risco Modificado"), use_container_width=True)
             
     with st.expander("📚 Referência Científica"):
-        st.markdown("**Ye C, Ebeling P, Kline G.** Osteoporosis. *The Lancet*. 2025;406:2003-16.")
+        st.markdown("""
+        **Ye C, Ebeling P, Kline G.** Osteoporosis. *The Lancet*. 2025;406:2003-16.  
+        **DOI:** [10.1016/S0140-6736(25)01385-6](https://doi.org/10.1016/S0140-6736(25)01385-6)
+        """)
     st.markdown("</div>", unsafe_allow_html=True)
