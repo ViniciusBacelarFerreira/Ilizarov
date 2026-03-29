@@ -5,6 +5,7 @@ import datetime
 import os
 import sqlite3
 import plotly.graph_objects as go
+import math
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -17,7 +18,7 @@ if 'paciente_ativo' not in st.session_state:
     st.session_state.paciente_ativo = {"nome": "", "mae": "", "prontuario": ""}
 
 # Variáveis para armazenar o resultado atual na tela sem recarregar a página
-lista_modulos = ['arthro_map_res']
+lista_modulos = ['arthro_map_res', 'nhfs_res']
 for mod in lista_modulos:
     if mod not in st.session_state:
         st.session_state[mod] = None
@@ -53,7 +54,7 @@ init_db()
 # ==========================================
 # FUNÇÕES DE XAI E GRÁFICOS
 # ==========================================
-def gerar_grafico_waterfall(contribuicoes, titulo="Impacto das Variáveis (Arthro-MAP)"):
+def gerar_grafico_waterfall(contribuicoes, titulo="Impacto das Variáveis"):
     labels = list(contribuicoes.keys())
     values = list(contribuicoes.values())
     
@@ -66,17 +67,17 @@ def gerar_grafico_waterfall(contribuicoes, titulo="Impacto das Variáveis (Arthr
         orientation="v", measure=measures, x=labels, textposition="outside",
         text=[f"{v:+.1f}" if m == "relative" else f"{v:.1f}" for m, v in zip(measures, values)],
         y=values, connector={"line":{"color":"rgba(128,128,128,0.5)"}},
-        decreasing={"marker":{"color":"#1565c0"}}, increasing={"marker":{"color":"#ef6c00"}}, totals={"marker":{"color":"#333333"}}       
+        decreasing={"marker":{"color":"#1b5e20"}}, increasing={"marker":{"color":"#ef6c00"}}, totals={"marker":{"color":"#333333"}}       
     ))
     fig.update_layout(title={"text": titulo, "font": {"size": 14}}, showlegend=False, height=320, margin=dict(l=20, r=20, t=40, b=20), paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)')
     return fig
 
 def gerar_grafico_velocimetro(prob, tipo="risco"):
-    # Adaptado para a escala de probabilidade de complicação
+    # Escala geral de probabilidade de complicação/mortalidade
     steps = [{'range': [0, 5], 'color': "rgba(46, 125, 50, 0.8)"}, 
              {'range': [5, 20], 'color': "rgba(239, 108, 0, 0.8)"}, 
              {'range': [20, 100], 'color': "rgba(198, 40, 40, 0.8)"}]
-    title = "Risco de Complicação"
+    title = "Risco Estimado"
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number", value=prob, number={'suffix': "%", 'font': {'size': 40, 'color': '#333'}},
@@ -95,47 +96,41 @@ def obter_texto_explicativo(contribuicoes):
     return f"A variável que mais **aumentou** a pontuação de risco neste paciente foi: **{max_var}** (+{max_val:.1f} pontos)."
 
 # ==========================================
-# CÁLCULOS CLÍNICOS (ILIZAROV - ARTHRO-MAP)
+# CÁLCULOS CLÍNICOS (ILIZAROV)
 # ==========================================
 def risco_complicacao_arthro_map(fc, perda_sangue, ureia, procedimento, raca, asa, comorbidade, fratura):
     """
-    Baseado no nomograma Arthro-MAP (Wuerz et al., 2014)
-    Calcula pontos baseados na Figura 1 e interpola probabilidade.
+    Arthro-MAP (Wuerz et al., 2014) - Risco de Complicação Maior em Artroplastias
     """
     pontos = 0.0
     contribs = {}
 
-    # Variáveis Contínuas (Interpolação linear da escala visual Fig. 1)
     c_fc = fc * (80.0 / 120.0) 
-    contribs["Frequência Cardíaca"] = round(c_fc, 1)
+    contribs["Freq. Cardíaca"] = round(c_fc, 1)
     pontos += c_fc
 
     c_sangue = perda_sangue * (98.0 / 4000.0)
-    contribs["Perda Sanguínea"] = round(c_sangue, 1)
+    contribs["Perda Sangue"] = round(c_sangue, 1)
     pontos += c_sangue
 
     c_ureia = ureia * (100.0 / 100.0)
-    contribs["Ureia (BUN)"] = round(c_ureia, 1)
+    contribs["Ureia"] = round(c_ureia, 1)
     pontos += c_ureia
 
-    # Procedimento
     c_proc = 0
     if procedimento == "Parcial": c_proc = 16
     elif procedimento == "Revisão": c_proc = 29
     contribs["Procedimento"] = c_proc
     pontos += c_proc
 
-    # Raça
     c_raca = 28 if raca == "Branco" else 0
     contribs["Raça"] = c_raca
     pontos += c_raca
 
-    # ASA
     c_asa = 29 if asa == "ASA > 2 (III, IV, V)" else 0
-    contribs["Escore ASA"] = c_asa
+    contribs["ASA"] = c_asa
     pontos += c_asa
 
-    # Comorbidades
     c_com = 0
     if comorbidade == "Pulmonar": c_com = 16
     elif comorbidade == "Cardiovascular": c_com = 34
@@ -143,19 +138,65 @@ def risco_complicacao_arthro_map(fc, perda_sangue, ureia, procedimento, raca, as
     contribs["Comorbidades"] = c_com
     pontos += c_com
 
-    # Fratura
     c_frat = 65 if fratura else 0
     contribs["Fratura"] = c_frat
     pontos += c_frat
 
-    # Interpolação de Probabilidade (Eixo inferior Fig. 1)
-    # Aproximação da curva de calibração
     if pontos <= 50: prob = 1.0
     elif pontos <= 100: prob = 5.0
-    elif pontos <= 150: prob = 10.0 + ((pontos - 100) / 50) * 20.0 # Até 30%
-    elif pontos <= 200: prob = 30.0 + ((pontos - 150) / 50) * 40.0 # Até 70%
-    elif pontos <= 300: prob = 70.0 + ((pontos - 200) / 100) * 25.0 # Até 95%
+    elif pontos <= 150: prob = 10.0 + ((pontos - 100) / 50) * 20.0 
+    elif pontos <= 200: prob = 30.0 + ((pontos - 150) / 50) * 40.0 
+    elif pontos <= 300: prob = 70.0 + ((pontos - 200) / 100) * 25.0 
     else: prob = 98.0
+
+    return min(prob, 99.9), contribs
+
+def risco_mortalidade_nhfs(idade, sexo, hb_baixa, amts_baixo, inst, comorb, malig):
+    """
+    Nottingham Hip Fracture Score (NHFS) - Mortalidade em 30 dias (Stanley et al., 2023) [cite: 639]
+    """
+    pontos = 0
+    contribs = {}
+
+    # Idade 
+    if idade >= 86: p_idade = 4
+    elif 66 <= idade <= 85: p_idade = 3
+    else: p_idade = 0
+    pontos += p_idade
+    contribs["Idade"] = p_idade
+
+    # Sexo 
+    p_sexo = 1 if sexo == "Masculino" else 0
+    pontos += p_sexo
+    contribs["Sexo Masculino"] = p_sexo
+
+    # Hemoglobina 
+    p_hb = 1 if hb_baixa else 0
+    pontos += p_hb
+    contribs["Hb <= 10 g/dl"] = p_hb
+
+    # Cognição (AMTS) 
+    p_amts = 1 if amts_baixo else 0
+    pontos += p_amts
+    contribs["AMTS <= 6"] = p_amts
+
+    # Institucionalizado 
+    p_inst = 1 if inst else 0
+    pontos += p_inst
+    contribs["Vive em Instituição"] = p_inst
+
+    # Comorbidades 
+    p_comorb = 1 if comorb else 0
+    pontos += p_comorb
+    contribs[">= 2 Comorbidades"] = p_comorb
+
+    # Malignidade 
+    p_malig = 1 if malig else 0
+    pontos += p_malig
+    contribs["Malignidade"] = p_malig
+
+    # Fórmula 
+    prob = 100.0 / (1.0 + math.exp(4.718 - (pontos / 2.0)))
 
     return min(prob, 99.9), contribs
 
@@ -300,7 +341,7 @@ with st.sidebar:
 if nav == "🏠 Área de Trabalho":
     if not st.session_state.paciente_ativo['prontuario']:
         st.markdown("<h1 class='main-title'>OrtoPreditor <span class='ilizarov-text'>Ilizarov</span></h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center; font-size: 1.15rem; opacity: 0.85; max-width: 900px; margin: 15px auto 35px auto;'>Sistema de apoio à decisão cirúrgica em Ortopedia e Traumatologia. Utiliza modelos preditivos para estimar riscos de complicações pós-operatórias baseados em dados pré e intraoperatórios.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center; font-size: 1.15rem; opacity: 0.85; max-width: 900px; margin: 15px auto 35px auto;'>Sistema de apoio à decisão cirúrgica em Ortopedia e Traumatologia. Utiliza modelos preditivos baseados na literatura médica para estimar riscos de complicações e mortalidade.</p>", unsafe_allow_html=True)
         
         c1, c2 = st.columns(2)
         with c1:
@@ -358,13 +399,13 @@ if nav == "🏠 Área de Trabalho":
         </div>
         """, unsafe_allow_html=True)
         
-        tabs = st.tabs(["📊 Painel Visual", "🦴 Artroplastia (Arthro-MAP)", "📄 Relatório Oficial"])
+        tabs = st.tabs(["📊 Painel Visual", "🦴 Artroplastia (Arthro-MAP)", "🩼 Fratura de Fêmur (NHFS)", "📄 Relatório Oficial"])
 
         painel_placeholder = tabs[0].empty()
-        relatorio_placeholder = tabs[2].empty()
+        relatorio_placeholder = tabs[3].empty()
 
         with tabs[1]: 
-            st.markdown("<div class='calc-info'><b>O que calcula:</b> O modelo <b>Arthro-MAP</b> estratifica o risco de complicações maiores após artroplastia de quadril e joelho (ex: IAM, TEP, falência renal, infecção profunda) durante a internação.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='calc-info'><b>O que calcula:</b> O modelo <b>Arthro-MAP</b> estratifica o risco de complicações maiores após artroplastia de quadril e joelho durante a internação.</div>", unsafe_allow_html=True)
             st.markdown("<div class='input-card'><h4>🦴 Arthro-MAP (Risco Pós-Operatório)</h4>", unsafe_allow_html=True)
             
             c1, c2 = st.columns(2)
@@ -401,12 +442,52 @@ if nav == "🏠 Área de Trabalho":
                 with col_x:
                     st.markdown("##### 🧠 Explicabilidade do Algoritmo (XAI)")
                     st.markdown(obter_texto_explicativo(contribs))
-                    st.plotly_chart(gerar_grafico_waterfall(contribs), use_container_width=True)
+                    st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Impacto das Variáveis (Arthro-MAP)"), use_container_width=True)
                 
             with st.expander("📚 Referência Científica"):
                 st.markdown("""
-                **Wuerz TH, Kent DM, Malchau H, Rubash HE.** A Nomogram to Predict Major Complications After Hip and Knee Arthroplasty. *The Journal of Arthroplasty*. 2014;29:1457-1462.  
-                **DOI:** [10.1016/j.arth.2013.09.007](http://dx.doi.org/10.1016/j.arth.2013.09.007)
+                **Wuerz TH, Kent DM, Malchau H, Rubash HE.** A Nomogram to Predict Major Complications After Hip and Knee Arthroplasty. *The Journal of Arthroplasty*. 2014;29:1457-1462.
+                """)
+            st.markdown("</div>", unsafe_allow_html=True)
+
+        with tabs[2]: 
+            st.markdown("<div class='calc-info'><b>O que calcula:</b> O <b>Nottingham Hip Fracture Score (NHFS)</b> prediz a probabilidade de <b>mortalidade em 30 dias</b> em pacientes com fratura do fêmur proximal, utilizando dados de admissão.</div>", unsafe_allow_html=True)
+            st.markdown("<div class='input-card'><h4>🩼 NHFS (Risco de Mortalidade)</h4>", unsafe_allow_html=True)
+            
+            n1, n2 = st.columns(2)
+            with n1:
+                nhfs_idade = st.number_input("Idade do paciente (anos):", min_value=0, max_value=120, value=75)
+                nhfs_sexo = st.selectbox("Sexo biológico:", ["Feminino", "Masculino"])
+                nhfs_hb = st.toggle("Hemoglobina de admissão ≤ 10 g/dl?")
+                nhfs_amts = st.toggle("Escore Cognitivo AMTS ≤ 6 (ou diagnóstico de demência)?")
+                
+            with n2:
+                nhfs_inst = st.toggle("O paciente reside em instituição de longa permanência (asilo)?")
+                nhfs_comorb = st.toggle("O paciente possui 2 ou mais comorbidades sistêmicas?")
+                nhfs_malig = st.toggle("O paciente possui diagnóstico de malignidade (câncer)?")
+            
+            if st.button("Calcular e Salvar Risco de Mortalidade (NHFS)", key="btn_nhfs"):
+                res, contribs = risco_mortalidade_nhfs(nhfs_idade, nhfs_sexo, nhfs_hb, nhfs_amts, nhfs_inst, nhfs_comorb, nhfs_malig)
+                params = f"Idade: {nhfs_idade} | Sexo: {nhfs_sexo} | Hb≤10: {'Sim' if nhfs_hb else 'Não'} | AMTS≤6: {'Sim' if nhfs_amts else 'Não'} | Inst: {'Sim' if nhfs_inst else 'Não'} | ≥2 Comorb: {'Sim' if nhfs_comorb else 'Não'} | Malig: {'Sim' if nhfs_malig else 'Não'}"
+                st.session_state.nhfs_res = (res, contribs)
+                salvar_registro("NHFS (Mortalidade 30d)", res, "risco", params)
+            
+            if st.session_state.nhfs_res is not None:
+                res, contribs = st.session_state.nhfs_res
+                st.success("Cálculo realizado e salvo com sucesso na base de dados!")
+                
+                col_g, col_x = st.columns([1, 1.5])
+                with col_g:
+                    st.plotly_chart(gerar_grafico_velocimetro(res, "risco"), use_container_width=True)
+                with col_x:
+                    st.markdown("##### 🧠 Explicabilidade do Algoritmo (XAI)")
+                    st.markdown(obter_texto_explicativo(contribs))
+                    st.plotly_chart(gerar_grafico_waterfall(contribs, titulo="Impacto das Variáveis (NHFS)"), use_container_width=True)
+                
+            with st.expander("📚 Referência Científica"):
+                st.markdown("""
+                **Stanley C, Lennon D, Moran C, Vasireddy A, Rowan F.** Risk scoring models for patients with proximal femur fractures: Qualitative systematic review assessing 30-day mortality and ease of use. *Injury*. 2023;54:111017. [cite: 338-339]  
+                **DOI:** [10.1016/j.injury.2023.111017](https://doi.org/10.1016/j.injury.2023.111017)
                 """)
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -436,7 +517,7 @@ if nav == "🏠 Área de Trabalho":
                         </div><br>
                         """, unsafe_allow_html=True)
             else: 
-                st.info("Nenhum cálculo salvo ainda. Realize a avaliação na aba Arthro-MAP.")
+                st.info("Nenhum cálculo salvo ainda. Realize a avaliação nas abas clínicas.")
                     
         with relatorio_placeholder.container():
             st.markdown("### 🖨️ Relatório Oficial (Formato A4)")
