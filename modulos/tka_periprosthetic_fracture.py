@@ -3,43 +3,34 @@ from utils import gerar_grafico_velocimetro, gerar_grafico_waterfall, obter_text
 from database import salvar_registro
 
 def calcular_risco(sexo_feminino, notching, osteoporose, parkinson, cardiovascular, lado_esquerdo):
-    # Cálculo proxy baseado nos Odds Ratios do estudo de Li et al. (2025)
     pontos = 0.0
     contribs = {}
     
-    # Doença de Parkinson (OR = 7.48)
     if parkinson:
         pontos += 7.5
         contribs["Doença de Parkinson"] = 7.5
         
-    # Anterior Femoral Notching (OR = 3.12)
     if notching:
         pontos += 3.1
         contribs["Notching Femoral Anterior"] = 3.1
         
-    # Doença Cardiovascular (OR = 2.23)
     if cardiovascular:
         pontos += 2.2
         contribs["Doença Cardiovascular"] = 2.2
         
-    # Sexo Feminino (OR = 1.81)
     if sexo_feminino:
         pontos += 1.8
         contribs["Sexo Feminino"] = 1.8
         
-    # Osteoporose (OR = 1.68)
     if osteoporose:
         pontos += 1.7
         contribs["Osteoporose"] = 1.7
         
-    # Lateralidade Esquerda (OR = 1.68)
     if lado_esquerdo:
         pontos += 1.7
         contribs["Lateralidade (Joelho Esquerdo)"] = 1.7
         
-    # Conversão do score para probabilidade estimada de risco (ajustado para representar agravamento da incidência base de 3.5%)
     prob = min(99.9, (pontos / 18.0) * 25.0)
-    
     return round(prob, 1), contribs
 
 def renderizar_ui():
@@ -49,7 +40,7 @@ def renderizar_ui():
     <div class='calc-info' style='background-color: rgba(21, 101, 192, 0.05); border-left-color: #1565c0;'>
     💡 <b>Explicação dos Preditores (Li et al., 2025):</b><br>
     • <b>Notching Femoral Anterior:</b> Ressecção óssea excessiva na cortical anterior do fêmur que cria um ponto de concentração de estresse mecânico, facilitando fraturas supracondilianas.<br>
-    • <b>Doença de Parkinson:</b> Pacientes possuem menor densidade óssea devido a desnutrição e sofrem de disfunção motora severa, aumentando drasticamente o risco de quedas e trauma sobre a prótese.<br>
+    • <b>Doença de Parkinson:</b> Pacientes possuem menor densidade óssea devido à desnutrição e sofrem de disfunção motora severa, aumentando drasticamente o risco de quedas e trauma sobre a prótese.<br>
     • <b>Doença Cardiovascular:</b> O uso de medicações cardiológicas e a diminuição de proteínas ósseas (esclerostina) afetam o metabolismo do osso, tornando-o mais frágil.<br>
     • <b>Osteoporose & Sexo Feminino:</b> A diminuição do estrogênio pós-menopausa causa reabsorção óssea acelerada, reduzindo o suporte ósseo do implante.<br>
     • <b>Lateralidade (Esquerda):</b> Encontrada associação estatística independente para o joelho esquerdo na literatura global, possivelmente ligada a assimetrias de marcha.
