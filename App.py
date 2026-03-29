@@ -77,7 +77,7 @@ for mod in lista_modulos:
     if mod not in st.session_state:
         st.session_state[mod] = None
 
-SENHA_CORRETA = "hugv1869"
+SENHA_CORRETA = "hugv1921"
 
 # ==========================================
 # TELA DE LOGIN
