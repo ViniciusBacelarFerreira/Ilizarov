@@ -263,7 +263,7 @@ if nav == "🏠 Área de Trabalho":
                 with st.expander("🔸 Perna"):
                     st.info("⏳ Módulos para a perna em desenvolvimento...")
                 with st.expander("🔸 Tornozelo e Pé", expanded=True):
-                    if st.button("🦶 Risco de Reintervenção (I&D) em Pé/Tornozelo", use_container_width=True):
+                    if st.button("🦶 Risco Infeccioso (Cirurgia de Pé e Tornozelo)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'foot_ankle_id'
                         st.rerun()
 
