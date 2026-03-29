@@ -5,7 +5,7 @@ import datetime
 import sqlite3
 
 # Importações da base de dados e utilitários
-from database import init_db, obter_df_paciente, obter_df_completo, DB_NAME, obter_classificacao
+from database import init_db, obter_df_paciente, obter_df_completo, DB_NAME, obter_classificacao, excluir_prontuario
 from utils import carregar_css
 
 # Importação dos Módulos Clínicos
@@ -24,6 +24,7 @@ import modulos.periprosthetic_fracture as periprosthetic_fracture
 import modulos.tka_periprosthetic_fracture as tka_periprosthetic_fracture
 import modulos.tha_periprosthetic_fracture as tha_periprosthetic_fracture
 import modulos.hand_surgery_complications as hand_surgery_complications
+import modulos.chondral_defects as chondral_defects
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -71,13 +72,13 @@ lista_modulos = [
     'foot_ankle_id_res', 'distal_radius_res', 'distal_radius_instability_res',
     'proximal_humerus_outcomes_res', 'periprosthetic_fracture_res', 
     'tka_periprosthetic_fracture_res', 'tha_periprosthetic_fracture_res',
-    'hand_surgery_complications_res'
+    'hand_surgery_complications_res', 'chondral_defects_res'
 ]
 for mod in lista_modulos:
     if mod not in st.session_state:
         st.session_state[mod] = None
 
-SENHA_CORRETA = "hugv1921"
+SENHA_CORRETA = "hugv1869"
 
 # ==========================================
 # TELA DE LOGIN
@@ -172,12 +173,22 @@ if nav == "🏠 Área de Trabalho":
                     lista = [""] + [f"{r['Prontuário']} - {r['Paciente']}" for _, r in df_filtrado.iterrows()]
                     sel = st.selectbox("Resultados encontrados:", lista)
                     st.markdown("<br>", unsafe_allow_html=True)
-                    if st.button("Abrir Prontuário Selecionado", use_container_width=True) and sel:
+                    
+                    if sel:
                         id_p = sel.split(" - ")[0]
-                        dados = df_b[df_b['Prontuário'] == id_p].iloc[0]
-                        st.session_state.paciente_ativo = {"prontuario": id_p, "nome": dados['Paciente'], "mae": dados['Mãe']}
-                        st.session_state.modulo_selecionado = None
-                        st.rerun()
+                        col_btn1, col_btn2 = st.columns([2, 1])
+                        
+                        with col_btn1:
+                            if st.button("📂 Abrir Prontuário", use_container_width=True):
+                                dados = df_b[df_b['Prontuário'] == id_p].iloc[0]
+                                st.session_state.paciente_ativo = {"prontuario": id_p, "nome": dados['Paciente'], "mae": dados['Mãe']}
+                                st.session_state.modulo_selecionado = None
+                                st.rerun()
+                                
+                        with col_btn2:
+                            if st.button("🗑️ Excluir", use_container_width=True):
+                                excluir_prontuario(id_p)
+                                st.rerun()
                 else:
                     st.warning("Nenhum paciente encontrado.")
             else: 
@@ -287,11 +298,17 @@ if nav == "🏠 Área de Trabalho":
                     if st.button("🦵 Risco de Fratura Periprotésica (Artroplastia de Joelho)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'tka_periprosthetic_fracture'
                         st.rerun()
+                    if st.button("🦵 Prognóstico no Reparo de Lesões Condrais", use_container_width=True, key="condral_joelho"):
+                        st.session_state.modulo_selecionado = 'chondral_defects'
+                        st.rerun()
                 with st.expander("🔸 Perna"):
                     st.info("⏳ Módulos para a perna em desenvolvimento...")
                 with st.expander("🔸 Tornozelo e Pé", expanded=True):
                     if st.button("🦶 Risco Infeccioso (Cirurgia de Pé e Tornozelo)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'foot_ankle_id'
+                        st.rerun()
+                    if st.button("🦶 Prognóstico no Reparo de Lesões Condrais (Tálus)", use_container_width=True, key="condral_tornozelo"):
+                        st.session_state.modulo_selecionado = 'chondral_defects'
                         st.rerun()
 
             # --- COLUNA VERTEBRAL ---
@@ -384,6 +401,8 @@ if nav == "🏠 Área de Trabalho":
                 tha_periprosthetic_fracture.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'hand_surgery_complications':
                 hand_surgery_complications.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'chondral_defects':
+                chondral_defects.renderizar_ui()
                 
             # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
