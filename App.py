@@ -20,6 +20,7 @@ import modulos.foot_ankle_id as foot_ankle_id
 import modulos.distal_radius as distal_radius
 import modulos.distal_radius_instability as distal_radius_instability
 import modulos.proximal_humerus_outcomes as proximal_humerus_outcomes
+import modulos.periprosthetic_fracture as periprosthetic_fracture
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -65,7 +66,7 @@ lista_modulos = [
     'arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 
     'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res', 
     'foot_ankle_id_res', 'distal_radius_res', 'distal_radius_instability_res',
-    'proximal_humerus_outcomes_res'
+    'proximal_humerus_outcomes_res', 'periprosthetic_fracture_res'
 ]
 for mod in lista_modulos:
     if mod not in st.session_state:
@@ -256,12 +257,15 @@ if nav == "🏠 Área de Trabalho":
 
             # --- MEMBRO INFERIOR ---
             elif categoria_escolhida == "🦵 Membro Inferior":
-                with st.expander("🔸 Quadril", expanded=True):
+                with st.expander("🔸 Quadril / Anca", expanded=True):
                     if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia de Quadril)", use_container_width=True, key="am_quadril"):
                         st.session_state.modulo_selecionado = 'arthro_map'
                         st.rerun()
                     if st.button("🩼 NHFS (Mortalidade em Fratura do Fêmur)", use_container_width=True):
                         st.session_state.modulo_selecionado = 'nhfs'
+                        st.rerun()
+                    if st.button("🦵 Risco de Fratura Periprotésica (Artroplastia ≥ 80 anos)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'periprosthetic_fracture'
                         st.rerun()
                 with st.expander("🔸 Coxa"):
                     st.info("⏳ Módulos para a coxa em desenvolvimento...")
@@ -358,6 +362,8 @@ if nav == "🏠 Área de Trabalho":
                 distal_radius_instability.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'proximal_humerus_outcomes':
                 proximal_humerus_outcomes.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'periprosthetic_fracture':
+                periprosthetic_fracture.renderizar_ui()
                 
             # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
