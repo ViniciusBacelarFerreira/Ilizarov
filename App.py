@@ -21,6 +21,7 @@ import modulos.distal_radius as distal_radius
 import modulos.distal_radius_instability as distal_radius_instability
 import modulos.proximal_humerus_outcomes as proximal_humerus_outcomes
 import modulos.periprosthetic_fracture as periprosthetic_fracture
+import modulos.tka_periprosthetic_fracture as tka_periprosthetic_fracture
 
 # ==========================================
 # CONFIGURAÇÃO INICIAL E ESTADO DA SESSÃO
@@ -66,7 +67,7 @@ lista_modulos = [
     'arthro_map_res', 'nhfs_res', 'osteo_res', 'start_back_res', 
     'spinesage_res', 'rotator_cuff_res', 'osteosarcoma_res', 
     'foot_ankle_id_res', 'distal_radius_res', 'distal_radius_instability_res',
-    'proximal_humerus_outcomes_res', 'periprosthetic_fracture_res'
+    'proximal_humerus_outcomes_res', 'periprosthetic_fracture_res', 'tka_periprosthetic_fracture_res'
 ]
 for mod in lista_modulos:
     if mod not in st.session_state:
@@ -273,6 +274,9 @@ if nav == "🏠 Área de Trabalho":
                     if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia de Joelho)", use_container_width=True, key="am_joelho"):
                         st.session_state.modulo_selecionado = 'arthro_map'
                         st.rerun()
+                    if st.button("🦵 Risco de Fratura Periprotésica (Artroplastia de Joelho)", use_container_width=True):
+                        st.session_state.modulo_selecionado = 'tka_periprosthetic_fracture'
+                        st.rerun()
                 with st.expander("🔸 Perna"):
                     st.info("⏳ Módulos para a perna em desenvolvimento...")
                 with st.expander("🔸 Tornozelo e Pé", expanded=True):
@@ -364,6 +368,8 @@ if nav == "🏠 Área de Trabalho":
                 proximal_humerus_outcomes.renderizar_ui()
             elif st.session_state.modulo_selecionado == 'periprosthetic_fracture':
                 periprosthetic_fracture.renderizar_ui()
+            elif st.session_state.modulo_selecionado == 'tka_periprosthetic_fracture':
+                tka_periprosthetic_fracture.renderizar_ui()
                 
             # Módulo de Relatório Oficial A4
             elif st.session_state.modulo_selecionado == 'relatorio':
