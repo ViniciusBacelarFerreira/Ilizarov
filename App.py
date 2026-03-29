@@ -214,7 +214,7 @@ if nav == "🏠 Área de Trabalho":
             # --- MEMBRO INFERIOR ---
             with tab_mi:
                 st.markdown("#### Membro Inferior")
-                with st.expander("🔸 Anca / Quadril", expanded=True):
+                with st.expander("🔸 Quadril", expanded=True):
                     if st.button("🦵 Arthro-MAP (Risco Pós-Op Artroplastia Anca)", use_container_width=True, key="am_anca"):
                         st.session_state.modulo_selecionado = 'arthro_map'
                         st.rerun()
